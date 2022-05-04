@@ -1,0 +1,87 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "csv2notion"
+version = "0.1.0"
+description = "Import/Merge CSV files into Notion database"
+authors = ["vzhd1701 <vzhd1701@gmail.com>"]
+readme = "README.md"
+include = ["CHANGELOG.md"]
+license = "MIT"
+repository = "https://github.com/vzhd1701/csv2notion"
+keywords = ["csv", "notion", "import", "merge"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: English",
+    "Environment :: Console",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft",
+    "Operating System :: Unix",
+    "Topic :: Internet",
+    "Topic :: Terminals",
+    "Topic :: Utilities",
+]
+
+[tool.poetry.urls]
+"Changelog" = "https://github.com/vzhd1701/csv2notion/blob/master/CHANGELOG.md"
+
+[tool.poetry.scripts]
+csv2notion = "csv2notion.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.27.1"
+commonmark = "^0.9.1"
+bs4 = "^0.0.1"
+tzlocal = "^4.2"
+python-slugify = "^6.1.1"
+dictdiffer = "^0.9.0"
+cached-property = "^1.5.2"
+python-dateutil = "^2.8.2"
+tqdm = "^4.64.0"
+emoji = "^1.7.0"
+
+[tool.poetry.dev-dependencies]
+mdformat = "0.7.7"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+pytest-mock = "^3.7.0"
+pyfakefs = "^4.5.6"
+pytest-vcr = "^1.0.2"
+black = "^22.3.0"
+isort = "^5.10.1"
+pre-commit = "^2.18.1"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+
+[tool.coverage]
+    [tool.coverage.report]
+    show_missing = true
+    exclude_lines = [
+        # Have to re-enable the standard pragma
+        'pragma: no cover',
+
+        # Don't complain about missing debug-only code:
+        'def __repr__',
+        'if self\.debug',
+
+        # Don't complain if tests don't hit defensive assertion code:
+        'raise AssertionError',
+        'raise NotImplementedError',
+
+        # Don't complain if non-runnable code isn't run:
+        'if 0:',
+        'if __name__ == .__main__.:'
+    ]
+    omit = [
+        '*/tests/*',
+        '*/notion/*',
+    ]
