@@ -198,9 +198,11 @@ class NotionDBMaker(object):
 
 
 @pytest.fixture()
-def db_maker(vcr_cassette):
+def db_maker(vcr_cassette_dir, vcr_cassette_name):
+    casette_path = Path(vcr_cassette_dir) / f"{vcr_cassette_name}.yaml"
+
     # if cassette exists, no need for real token
-    if vcr_cassette.requests:
+    if casette_path.exists():
         token = "fake_token"
     else:
         token = os.environ.get("NOTION_TEST_TOKEN")
