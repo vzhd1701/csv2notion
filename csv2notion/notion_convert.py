@@ -1,18 +1,17 @@
 from functools import partial
 from pathlib import Path
 
-from emoji import is_emoji
-
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_convert_utils import (
     TypeConversionError,
     map_checkbox,
     map_date,
+    map_icon,
+    map_image,
     map_number,
 )
-from csv2notion.notion_db import NotionDB, NotionError, NotionUploadRow
-from csv2notion.notion_type_guess import is_url
-from csv2notion.utils import split_str
+from csv2notion.notion_db import NotionDB, NotionUploadRow
+from csv2notion.utils import NotionError, split_str
 
 
 def _validate_csv_duplicates(csv_data):
@@ -121,10 +120,13 @@ class NotionRowConverter(object):
 
     def _map_icon(self, row):
         icon = None
+
         if self.rules["icon_column"]:
             icon = row.get(self.rules["icon_column"], "").strip()
             if icon:
-                icon = icon if is_url(icon) or is_emoji(icon) else self._map_path(icon)
+                icon = map_icon(icon)
+                if isinstance(icon, Path):
+                    icon = self._relative_path(icon)
             elif self.rules["icon_column"] in self.rules["mandatory_columns"]:
                 raise NotionError(
                     f"Mandatory column '{self.rules['icon_column']}' is empty"
@@ -134,6 +136,10 @@ class NotionRowConverter(object):
 
             if not self.rules["icon_column_keep"]:
                 row.pop(self.rules["icon_column"], None)
+
+        if not icon and self.rules["default_icon"]:
+            icon = self.rules["default_icon"]
+
         return icon
 
     def _map_image(self, row):
@@ -141,7 +147,9 @@ class NotionRowConverter(object):
         if self.rules["image_column"]:
             image = row.get(self.rules["image_column"], "").strip()
             if image:
-                image = image if is_url(image) else self._map_path(image)
+                image = map_image(image)
+                if isinstance(image, Path):
+                    image = self._relative_path(image)
             elif self.rules["image_column"] in self.rules["mandatory_columns"]:
                 raise NotionError(
                     f"Mandatory column '{self.rules['image_column']}' is empty"
@@ -153,7 +161,7 @@ class NotionRowConverter(object):
                 row.pop(self.rules["image_column"], None)
         return image
 
-    def _map_path(self, path):
+    def _relative_path(self, path):
         search_path = self.rules["files_search_path"]
 
         path = Path(path)

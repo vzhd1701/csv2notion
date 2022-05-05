@@ -3,7 +3,7 @@ import os
 import pytest
 
 from csv2notion.cli import cli
-from csv2notion.notion_db import NotionError
+from csv2notion.utils import NotionError
 
 
 @pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")

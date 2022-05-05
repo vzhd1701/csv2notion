@@ -1,9 +1,12 @@
 from datetime import datetime
+from pathlib import Path
 from typing import List, Union
 
 import dateutil.parser
+from emoji import is_emoji
 
 from csv2notion.csv_data import CSVData
+from csv2notion.notion_type_guess import is_url
 from csv2notion.utils import rand_id_list
 
 
@@ -32,6 +35,14 @@ def map_number(value: str) -> Union[int, float]:
         return int(float_value)
 
     return float_value
+
+
+def map_icon(s: str) -> Union[str, Path]:
+    return s if is_url(s) or is_emoji(s) else Path(s)
+
+
+def map_image(s: str) -> Union[str, Path]:
+    return s if is_url(s) else Path(s)
 
 
 def schema_from_csv(csv_data: CSVData) -> dict:

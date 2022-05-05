@@ -1,6 +1,6 @@
 import mimetypes
 from pathlib import Path
-from typing import List, Union
+from typing import Union
 
 import requests
 
@@ -9,13 +9,9 @@ from csv2notion.notion.block import Block, ImageBlock
 from csv2notion.notion.client import NotionClient
 from csv2notion.notion.utils import InvalidNotionIdentifier
 from csv2notion.notion_convert_utils import schema_from_csv
-from csv2notion.utils import rand_id_unique
+from csv2notion.utils import NotionError, rand_id_unique
 
 S3_URL_PREFIX = "https://s3-us-west-2.amazonaws.com/secure.notion-static.com/"
-
-
-class NotionError(Exception):
-    pass
 
 
 def make_new_db_from_csv(

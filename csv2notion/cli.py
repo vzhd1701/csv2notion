@@ -9,15 +9,12 @@ from tqdm import tqdm
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_convert import NotionRowConverter
-from csv2notion.notion_db import (
-    NotionDB,
-    NotionError,
-    get_notion_client,
-    make_new_db_from_csv,
-)
+from csv2notion.notion_convert_utils import map_icon
+from csv2notion.notion_db import NotionDB, get_notion_client, make_new_db_from_csv
 from csv2notion.utils import (
     ALLOWED_TYPES,
     CriticalError,
+    NotionError,
     process_iter,
     setup_logging,
     split_str,
@@ -54,6 +51,7 @@ def cli(argv: List[str]) -> None:
 
     conversion_rules = {
         "files_search_path": args.csv_file.parent,
+        "default_icon": args.default_icon,
         "image_column": args.image_column,
         "image_column_keep": args.image_column_keep,
         "icon_column": args.icon_column,
@@ -162,6 +160,13 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
             "action": "store_true",
             "default": False,
             "help": "keep icon CSV column as a Notion DB column",
+        },
+        "--default-icon": {
+            "help": (
+                "Emoji, URL or image file"
+                " that will be used as page icon for every row by default"
+            ),
+            "metavar": "ICON",
         },
         "--missing-columns-action": {
             "choices": ["add", "ignore", "fail"],
@@ -277,6 +282,12 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
                 f"Unknown types: {', '.join(unknown_types)};"
                 f" allowed types: {', '.join(ALLOWED_TYPES)}"
             )
+
+    if parsed_args.default_icon:
+        parsed_args.default_icon = map_icon(parsed_args.default_icon)
+        if isinstance(parsed_args.default_icon, Path):
+            if not parsed_args.default_icon.exists():
+                raise CriticalError(f"File not found: {parsed_args.default_icon}")
 
     return parsed_args
 

@@ -1,6 +1,5 @@
 import logging
 import random
-import re
 import string
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -22,7 +21,11 @@ ALLOWED_TYPES = frozenset(
 
 
 class CriticalError(Exception):
-    """Base class for logged exceptions in this module."""
+    pass
+
+
+class NotionError(Exception):
+    pass
 
 
 def setup_logging(is_verbose: bool = False, log_file: Optional[Path] = None) -> None:
