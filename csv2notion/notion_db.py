@@ -1,6 +1,6 @@
 import mimetypes
 from pathlib import Path
-from typing import Union
+from typing import List, Union
 
 import requests
 
@@ -15,9 +15,12 @@ S3_URL_PREFIX = "https://s3-us-west-2.amazonaws.com/secure.notion-static.com/"
 
 
 def make_new_db_from_csv(
-    client: NotionClient, page_name: str, csv_data: CSVData
+    client: NotionClient,
+    page_name: str,
+    csv_data: CSVData,
+    skip_columns: List[str] = None,
 ) -> str:
-    schema = schema_from_csv(csv_data)
+    schema = schema_from_csv(csv_data, skip_columns)
 
     permissions = [
         {"role": "editor", "type": "user_permission", "user_id": client.current_user.id}

@@ -42,8 +42,18 @@ def cli(argv: List[str]) -> None:
 
     if not args.url:
         logger.info("Creating new database")
+
+        skip_columns = []
+        if args.image_column and not args.image_column_keep:
+            skip_columns.append(args.image_column)
+        if args.icon_column and not args.icon_column_keep:
+            skip_columns.append(args.icon_column)
+
         args.url = make_new_db_from_csv(
-            client, page_name=args.csv_file.stem, csv_data=csv_data
+            client,
+            page_name=args.csv_file.stem,
+            csv_data=csv_data,
+            skip_columns=skip_columns,
         )
         logger.info(f"New database URL: {args.url}")
 

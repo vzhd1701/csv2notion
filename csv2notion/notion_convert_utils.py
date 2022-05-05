@@ -45,8 +45,11 @@ def map_image(s: str) -> Union[str, Path]:
     return s if is_url(s) else Path(s)
 
 
-def schema_from_csv(csv_data: CSVData) -> dict:
-    columns = csv_data.keys()
+def schema_from_csv(csv_data: CSVData, skip_columns: List[str] = None) -> dict:
+    if skip_columns:
+        columns = [c for c in csv_data.keys() if c not in skip_columns]
+    else:
+        columns = csv_data.keys()
 
     schema_ids = rand_id_list(len(columns) - 1, 4)
 
