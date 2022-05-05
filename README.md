@@ -58,8 +58,8 @@ $ poetry run csv2notion
 ```shell
 $ csv2notion --help
 usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--custom-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--icon-column COLUMN] [--icon-column-keep]
-                  [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}] [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns] [--fail-on-conversion-error]
-                  [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--version]
+                  [--default-icon ICON] [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}] [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns]
+                  [--fail-on-conversion-error] [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--version]
                   FILE
 
 Import/Merge CSV file into Notion database
@@ -80,6 +80,7 @@ optional arguments:
                         upload image as [cover] or insert it as [block] (default: block)
   --icon-column COLUMN  CSV column that points to emoji, URL or image file that will be used as page icon for that row
   --icon-column-keep    keep icon CSV column as a Notion DB column
+  --default-icon ICON   Emoji, URL or image file that will be used as page icon for every row by default
   --missing-columns-action {add,ignore,fail}
                         if columns are present in CSV but not in Notion DB, [add] them to Notion DB, [ignore] them or [fail] (default: ignore)
   --missing-relations-action {add,ignore,fail}
@@ -159,6 +160,8 @@ Column specified with the `--image-column` option will not be treated as a regul
 The tool allows you to add an icon to each row with the `--icon-column` option. The behavior is the same as with `--image-column`; the only difference is that you can use URL, file name, or single emoji.
 
 To also treat `--icon-column` as a regular column, use `--icon-column-keep` flag, similar to `--image-column-keep`.
+
+If you want to set the same icon for each row, use the `--default-icon` option. If both `--icon-column` and `--default-icon` are present, the default icon is used if the row doesn't have anything in the icon column.
 
 ### Mandatory columns
 
