@@ -163,6 +163,11 @@ class NotionDB(object):
     def refresh(self):
         self.page.refresh()
 
+    def remove(self):
+        if self.page:
+            self.page.remove(permanently=True)
+            self.page = None
+
 
 class NotionDBMaker(object):
     def __init__(self, client, page_name):
@@ -196,7 +201,7 @@ class NotionDBMaker(object):
 
     def cleanup(self):
         for db in self.databases:
-            db.page.remove(permanently=True)
+            db.remove()
         self.databases = []
 
 

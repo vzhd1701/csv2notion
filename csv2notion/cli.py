@@ -66,6 +66,7 @@ def cli(argv: List[str]) -> None:
         "fail_on_relation_duplicates": args.fail_on_relation_duplicates,
         "fail_on_duplicates": args.fail_on_duplicates,
         "fail_on_conversion_error": args.fail_on_conversion_error,
+        "fail_on_inaccessible_relations": args.fail_on_inaccessible_relations,
     }
 
     converter = NotionRowConverter(notion_db, conversion_rules)
@@ -208,6 +209,15 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
             "help": (
                 "fail if any column type conversion error occurs;"
                 " otherwise errors will be replaced with empty strings"
+            ),
+        },
+        "--fail-on-inaccessible-relations": {
+            "action": "store_true",
+            "default": False,
+            "help": (
+                "fail if any relation column points to a Notion DB that"
+                " is not accessible to the current user;"
+                " otherwise those columns will be ignored"
             ),
         },
         "--merge": {

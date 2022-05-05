@@ -129,10 +129,13 @@ class NotionDB(object):
     def relation(self, relation_column):
         if not self._cache_relations.get(relation_column):
             relation = self.schema[relation_column]
+            relation_collection = self._collection(relation["collection_id"])
+            if not relation_collection:
+                raise KeyError
             self._cache_relations[relation_column] = {
                 "name": self._collection_name(relation["collection_id"]),
                 "rows": self._collection_rows(relation["collection_id"]),
-                "collection": self._collection(relation["collection_id"]),
+                "collection": relation_collection,
             }
 
         return self._cache_relations[relation_column]
@@ -207,20 +210,20 @@ class NotionDB(object):
         return upload_data["url"]
 
     def _validate_collection_duplicates(self, collection_id: str) -> bool:
-        collection = self.client.get_collection(collection_id, force_refresh=True)
+        collection = self._collection(collection_id)
         row_titles = [row.title for row in collection.get_rows()]
 
         return len(row_titles) != len(set(row_titles))
 
     def _collection_rows(self, collection_id):
-        collection = self.client.get_collection(collection_id, force_refresh=True)
+        collection = self._collection(collection_id)
         rows = {}
         for row in sorted(collection.get_rows(), key=lambda r: r.title):
             rows.setdefault(row.title, row)
         return rows
 
     def _collection_name(self, collection_id):
-        collection = self.client.get_collection(collection_id, force_refresh=True)
+        collection = self._collection(collection_id)
         return collection.name
 
     def _collection(self, collection_id):

@@ -55,6 +55,14 @@ class NotionRowConverter(object):
                     f"CSV columns missing from Notion DB: {missing_columns}"
                 )
 
+        inaccessible_relations = self._get_inaccessible_relations(csv_data.keys())
+        if inaccessible_relations:
+            if self.rules["fail_on_inaccessible_relations"]:
+                raise NotionError(
+                    f"Columns with inaccessible relations: {inaccessible_relations}"
+                )
+            _drop_columns(inaccessible_relations, csv_data)
+
         if self.rules["fail_on_relation_duplicates"]:
             self._validate_relations_duplicates(csv_data.keys())
 
@@ -200,6 +208,23 @@ class NotionRowConverter(object):
                     f" relation column has duplicates which"
                     f" cannot be unambiguously mapped with CSV data."
                 )
+
+    def _get_inaccessible_relations(self, keys):
+        relation_keys = [
+            s_name
+            for s_name, s in self.db.schema.items()
+            if s["type"] == "relation" and s_name in keys
+        ]
+
+        inaccessible_relations = []
+
+        for relation_key in relation_keys:
+            try:
+                self.db.relation(relation_key)
+            except KeyError:
+                inaccessible_relations.append(relation_key)
+
+        return inaccessible_relations
 
     def _get_missing_columns(self, column_keys):
         csv_keys = set(column_keys)

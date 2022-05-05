@@ -54,6 +54,7 @@ class CSVData(object):
     def drop_column(self, col_name: str):
         for row in self.rows:
             del row[col_name]
+        del self.types[col_name]
 
     def __len__(self):
         return len(self.rows)
