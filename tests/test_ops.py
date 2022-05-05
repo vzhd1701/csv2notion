@@ -171,3 +171,7 @@ def test_keyboard_interrupt(mocker):
         main()
 
     assert e.value.code == 1
+
+
+def test_main_import():
+    from csv2notion import __main__
