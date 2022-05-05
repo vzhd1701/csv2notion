@@ -59,7 +59,7 @@ $ poetry run csv2notion
 $ csv2notion --help
 usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--custom-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--icon-column COLUMN] [--icon-column-keep]
                   [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}] [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns] [--fail-on-conversion-error]
-                  [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--version]
+                  [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--version]
                   FILE
 
 Import/Merge CSV file into Notion database
@@ -91,6 +91,8 @@ optional arguments:
                         fail if CSV has duplicate columns; otherwise last column will be used
   --fail-on-conversion-error
                         fail if any column type conversion error occurs; otherwise errors will be replaced with empty strings
+  --fail-on-inaccessible-relations
+                        fail if any relation column points to a Notion DB that is not accessible to the current user; otherwise those columns will be ignored
   --merge               merge CSV with existing Notion DB rows, first column will be used as a key
   --merge-only-column COLUMN
                         CSV column that should be updated on merge; when provided, other columns will be ignored (define multiple times for multiple columns)
@@ -141,6 +143,8 @@ Notion database has a relation column type, which allows you to link together en
 By default, it will match with the first found row; if it cannot find the match, it will add nothing. You can change this behavior with the `--missing-relations-action` option. Set it to `add` if you want the tool to create new entries in the linked DB if no match is found. Set it to `fail` if you want the program to stop if no match is found.
 
 Since the tool treats rows in the linked DB as unique you can prevent ambiguous matching with the `--fail-on-relation-duplicates` flag. It will check linked DB for duplicate keys and stop the executions if it finds any.
+
+If linked DB is not accessible, columns that point to it will be ignored. If you prefer the program to stop in this case, use the `--fail-on-inaccessible-relations` flag.
 
 ### Cover image / Embedded image
 
