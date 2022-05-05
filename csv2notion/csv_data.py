@@ -29,18 +29,18 @@ class CSVData(object):
         self.types = self._column_types(custom_types)
 
     def _column_types(self, custom_types: List[str] = None) -> dict:
-        if custom_types:
-            if len(custom_types) != len(self.keys()) - 1:
-                raise CriticalError(
-                    "Each column (except key) type must be defined in custom types list"
-                )
-
-            return {key: custom_types[i] for i, key in enumerate(self.keys()[1:])}
-        else:
+        if not custom_types:
             return {
                 key: guess_type_by_values(self.col_values(key))
                 for key in self.keys()[1:]
             }
+
+        if len(custom_types) != len(self.keys()) - 1:
+            raise CriticalError(
+                "Each column (except key) type must be defined in custom types list"
+            )
+
+        return {key: custom_types[i] for i, key in enumerate(self.keys()[1:])}
 
     def keys(self):
         return list(self.rows[0].keys()) if self.rows else []

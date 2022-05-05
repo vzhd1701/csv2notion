@@ -70,6 +70,8 @@ def test_is_checkbox(value, result):
         (["true", "false"], "checkbox"),
         (["true", "false", ""], "checkbox"),
         (["true", "false", "abc"], "text"),
+        ([""], "text"),
+        ([" "], "text"),
     ],
 )
 def test_guess_type_by_values(values, result):

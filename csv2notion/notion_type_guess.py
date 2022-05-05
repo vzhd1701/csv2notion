@@ -6,6 +6,7 @@ def guess_type_by_values(values: List[str]) -> str:
     unique_values = set(filter(None, values))
 
     match_map = {
+        "text": is_empty,
         "checkbox": is_checkbox,
         "number": is_number,
         "url": is_url,
@@ -40,3 +41,7 @@ def is_email(s: str) -> bool:
 
 def is_checkbox(s: str) -> bool:
     return s in {"true", "false"}
+
+
+def is_empty(s: str) -> bool:
+    return not s.strip()
