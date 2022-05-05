@@ -1,9 +1,6 @@
 import base64
-import hashlib
 import json
 import os
-import platform
-import random
 import uuid
 from pathlib import Path
 
@@ -11,10 +8,9 @@ import pytest
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 from csv2notion.csv_data import CSVData
-from csv2notion.notion.block import PageBlock
 from csv2notion.notion.client import NotionClient
 from csv2notion.notion_db import make_new_db_from_csv
-from csv2notion.utils import rand_id, rand_id_unique
+from csv2notion.utils import rand_id
 
 
 @pytest.fixture(scope="module")
@@ -52,11 +48,6 @@ def vcr_config():
         "before_record_response": response_cleaner,
         "decode_compressed_response": True,
     }
-
-
-@pytest.fixture()
-def notion_client():
-    yield NotionClient(token_v2=os.environ.get("NOTION_TEST_TOKEN"))
 
 
 @pytest.fixture()
@@ -170,8 +161,9 @@ class NotionDB(object):
 
 
 class NotionDBMaker(object):
-    def __init__(self, client, page_name):
+    def __init__(self, client, token, page_name):
         self.client = client
+        self.token = token
         self.page_name = page_name
         self.databases = []
 
@@ -206,8 +198,19 @@ class NotionDBMaker(object):
 
 
 @pytest.fixture()
-def db_maker():
-    client = NotionClient(token_v2=os.environ.get("NOTION_TEST_TOKEN"))
+def db_maker(vcr_cassette):
+    # if cassette exists, no need for real token
+    if vcr_cassette.requests:
+        token = "fake_token"
+    else:
+        token = os.environ.get("NOTION_TEST_TOKEN")
+
+    if not token:
+        raise RuntimeError(
+            "No token found. Set NOTION_TEST_TOKEN environment variable."
+        )
+
+    client = NotionClient(token_v2=token)
 
     test_page_title = "TESTING PAGE"
 
@@ -227,7 +230,7 @@ def db_maker():
     if top_pages:
         raise RuntimeError("Testing requires empty account")
 
-    db_maker = NotionDBMaker(client, test_page_title)
+    db_maker = NotionDBMaker(client, token, test_page_title)
 
     yield db_maker
 

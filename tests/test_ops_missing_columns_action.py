@@ -6,7 +6,6 @@ from csv2notion.cli import cli
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_missing_columns_action_fail(tmp_path, db_maker):
@@ -19,7 +18,7 @@ def test_missing_columns_action_fail(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--missing-columns-action",
@@ -31,7 +30,6 @@ def test_missing_columns_action_fail(tmp_path, db_maker):
     assert "CSV columns missing from Notion DB: {'c'}" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_missing_columns_action_ignore(tmp_path, db_maker):
@@ -43,7 +41,7 @@ def test_missing_columns_action_ignore(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--missing-columns-action",
@@ -61,7 +59,6 @@ def test_missing_columns_action_ignore(tmp_path, db_maker):
     assert getattr(table_rows[0], "b") == "2"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_missing_columns_action_add(tmp_path, db_maker):
@@ -73,7 +70,7 @@ def test_missing_columns_action_add(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--missing-columns-action",

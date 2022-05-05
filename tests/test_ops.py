@@ -47,9 +47,8 @@ def test_bad_token(tmp_path):
     assert "Invalid Notion token" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
-def test_bad_url(tmp_path):
+def test_bad_url(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,c\na,b,c\n")
 
@@ -57,7 +56,7 @@ def test_bad_url(tmp_path):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 "https://notnotion.com/bad_url",
                 str(test_file),
@@ -67,7 +66,6 @@ def test_bad_url(tmp_path):
     assert "Invalid URL" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_bad_url_type(tmp_path, db_maker):
@@ -81,7 +79,7 @@ def test_bad_url_type(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_row.get_browseable_url(),
                 str(test_file),
@@ -91,7 +89,6 @@ def test_bad_url_type(tmp_path, db_maker):
     assert "Provided URL links does not point to a Notion database" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_new_page(tmp_path, caplog, db_maker):
@@ -99,7 +96,7 @@ def test_new_page(tmp_path, caplog, db_maker):
     test_file.write_text("a,b,c\na,b,c\n")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(["--token", os.environ.get("NOTION_TEST_TOKEN"), str(test_file)])
+        cli(["--token", db_maker.token, str(test_file)])
 
     url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
 
@@ -118,7 +115,6 @@ def test_new_page(tmp_path, caplog, db_maker):
     assert getattr(table_rows[0], "c") == "c"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_new_page_column_order(tmp_path, caplog, db_maker):
@@ -126,7 +122,7 @@ def test_new_page_column_order(tmp_path, caplog, db_maker):
     test_file.write_text("c,b,a\nc,b,a\n")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(["--token", os.environ.get("NOTION_TEST_TOKEN"), str(test_file)])
+        cli(["--token", db_maker.token, str(test_file)])
 
     url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
 
@@ -145,7 +141,6 @@ def test_new_page_column_order(tmp_path, caplog, db_maker):
     assert getattr(table_rows[0], "c") == "c"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_existing_page(tmp_path, db_maker):
@@ -157,7 +152,7 @@ def test_existing_page(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             str(test_file),

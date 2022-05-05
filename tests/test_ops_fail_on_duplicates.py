@@ -6,7 +6,6 @@ from csv2notion.cli import cli
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_duplicates_csv(tmp_path, db_maker):
@@ -19,7 +18,7 @@ def test_fail_on_duplicates_csv(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--fail-on-duplicates",
@@ -30,7 +29,6 @@ def test_fail_on_duplicates_csv(tmp_path, db_maker):
     assert "Duplicate values found in first column in CSV" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_duplicates_csv_ok(tmp_path, db_maker):
@@ -42,7 +40,7 @@ def test_fail_on_duplicates_csv_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--fail-on-duplicates",
@@ -63,7 +61,6 @@ def test_fail_on_duplicates_csv_ok(tmp_path, db_maker):
     assert getattr(table_rows[1], "b") == "b2"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_duplicates_db(tmp_path, db_maker):
@@ -79,7 +76,7 @@ def test_fail_on_duplicates_db(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--fail-on-duplicates",
@@ -90,7 +87,6 @@ def test_fail_on_duplicates_db(tmp_path, db_maker):
     assert "Duplicate values found in DB key column" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_duplicates_db_ok(tmp_path, db_maker):
@@ -105,7 +101,7 @@ def test_fail_on_duplicates_db_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--fail-on-duplicates",

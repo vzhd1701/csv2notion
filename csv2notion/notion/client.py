@@ -41,7 +41,7 @@ def create_session(client_specified_retry=None):
             backoff_factor=0.3,
             status_forcelist=(502, 503, 504),
             # CAUTION: adding 'POST' to this list which is not technically idempotent
-            method_whitelist=(
+            allowed_methods=(
                 "POST",
                 "HEAD",
                 "TRACE",
@@ -211,7 +211,7 @@ class NotionClient(object):
         """
         # if it's a URL for a database page, try extracting the collection and view IDs
         if url_or_id.startswith("http"):
-            match = re.search("([a-f0-9]{32})\?v=([a-f0-9]{32})", url_or_id)
+            match = re.search(r"([a-f0-9]{32})\?v=([a-f0-9]{32})", url_or_id)
             if not match:
                 raise Exception("Invalid collection view URL")
             block_id, view_id = match.groups()

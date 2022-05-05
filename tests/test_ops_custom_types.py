@@ -48,7 +48,6 @@ def test_custom_types_bad_count(tmp_path):
     )
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_custom_types_checkbox(tmp_path, caplog, db_maker):
@@ -59,7 +58,7 @@ def test_custom_types_checkbox(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--custom-types",
                 "checkbox",
                 "--max-threads=1",
@@ -87,7 +86,6 @@ def test_custom_types_checkbox(tmp_path, caplog, db_maker):
     assert getattr(table_rows[2], "b") == False
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_custom_types_date(tmp_path, caplog, db_maker):
@@ -98,7 +96,7 @@ def test_custom_types_date(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--custom-types",
                 "date",
                 "--max-threads=1",
@@ -124,7 +122,6 @@ def test_custom_types_date(tmp_path, caplog, db_maker):
     assert getattr(table_rows[1], "b") is None
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_custom_types_textlike(tmp_path, caplog, db_maker):
@@ -135,7 +132,7 @@ def test_custom_types_textlike(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--custom-types",
                 "email,phone_number,url,text",
                 "--max-threads=1",
@@ -165,7 +162,6 @@ def test_custom_types_textlike(tmp_path, caplog, db_maker):
     assert getattr(table_rows[0], "e") == "e1"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_custom_types_multi_select(tmp_path, caplog, db_maker):
@@ -176,7 +172,7 @@ def test_custom_types_multi_select(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--custom-types",
                 "multi_select",
                 "--max-threads=1",
@@ -203,7 +199,6 @@ def test_custom_types_multi_select(tmp_path, caplog, db_maker):
     assert getattr(table_rows[0], "b") == ["b1", "b2", "b3"]
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_custom_types_select(tmp_path, caplog, db_maker):
@@ -214,7 +209,7 @@ def test_custom_types_select(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--custom-types",
                 "select",
                 "--max-threads=1",
@@ -243,7 +238,6 @@ def test_custom_types_select(tmp_path, caplog, db_maker):
     assert getattr(table_rows[1], "b") == "b2"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_custom_types_number(tmp_path, caplog, db_maker):
@@ -254,7 +248,7 @@ def test_custom_types_number(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--custom-types",
                 "number",
                 "--max-threads=1",

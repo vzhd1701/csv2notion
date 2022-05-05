@@ -7,7 +7,6 @@ from csv2notion.notion.block import ImageBlock, TextBlock
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_key_missing(tmp_path, db_maker):
@@ -20,7 +19,7 @@ def test_merge_key_missing(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--merge",
@@ -31,7 +30,6 @@ def test_merge_key_missing(tmp_path, db_maker):
     assert f"Key column 'a' does not exist in Notion DB" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_key_invalid(tmp_path, db_maker):
@@ -44,7 +42,7 @@ def test_merge_key_invalid(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--merge",
@@ -55,7 +53,6 @@ def test_merge_key_invalid(tmp_path, db_maker):
     assert f"Notion DB column 'a' is not a key column" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_ok(tmp_path, db_maker):
@@ -69,7 +66,7 @@ def test_merge_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--merge",
@@ -88,7 +85,6 @@ def test_merge_ok(tmp_path, db_maker):
     assert getattr(table_rows[0], "c") == "c1"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_only_column_missing(tmp_path, db_maker):
@@ -101,7 +97,7 @@ def test_merge_only_column_missing(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--merge",
@@ -114,7 +110,6 @@ def test_merge_only_column_missing(tmp_path, db_maker):
     assert "Merge only column(s) {'c'} not found in csv file" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_only_column_ok(tmp_path, db_maker):
@@ -128,7 +123,7 @@ def test_merge_only_column_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--merge",
@@ -149,7 +144,6 @@ def test_merge_only_column_ok(tmp_path, db_maker):
     assert getattr(table_rows[0], "c") == "c2"
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_image_column_ok(tmp_path, db_maker):
@@ -165,7 +159,7 @@ def test_merge_image_column_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--merge",
@@ -190,7 +184,6 @@ def test_merge_image_column_ok(tmp_path, db_maker):
     assert image.display_source == test_image_url
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_image_column_with_content_ok(tmp_path, db_maker):
@@ -207,7 +200,7 @@ def test_merge_image_column_with_content_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--merge",
@@ -232,7 +225,6 @@ def test_merge_image_column_with_content_ok(tmp_path, db_maker):
     assert image.display_source == test_image_url
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_image_column_with_image_content_ok(tmp_path, db_maker):
@@ -251,7 +243,7 @@ def test_merge_image_column_with_image_content_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--merge",

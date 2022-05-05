@@ -7,7 +7,6 @@ from csv2notion.notion.utils import slugify
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_relation_duplicates(tmp_path, db_maker):
@@ -26,7 +25,7 @@ def test_fail_on_relation_duplicates(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--fail-on-relation-duplicates",
@@ -42,7 +41,6 @@ def test_fail_on_relation_duplicates(tmp_path, db_maker):
     )
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_relation_duplicates_ok(tmp_path, db_maker):
@@ -59,7 +57,7 @@ def test_fail_on_relation_duplicates_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--fail-on-relation-duplicates",

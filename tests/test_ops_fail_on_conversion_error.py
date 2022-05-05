@@ -8,7 +8,6 @@ from csv2notion.cli import cli
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_conversion_error(tmp_path, db_maker):
@@ -19,7 +18,7 @@ def test_fail_on_conversion_error(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--fail-on-conversion-error",
                 "--custom-types",
                 "number",
@@ -30,7 +29,6 @@ def test_fail_on_conversion_error(tmp_path, db_maker):
     assert "CSV [2]: could not convert string to float: 'not_a_number'" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_conversion_error_ok(tmp_path, caplog, db_maker):
@@ -41,7 +39,7 @@ def test_fail_on_conversion_error_ok(tmp_path, caplog, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--fail-on-conversion-error",
                 "--custom-types",
                 "number",

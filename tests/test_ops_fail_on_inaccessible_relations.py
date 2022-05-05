@@ -6,7 +6,6 @@ from csv2notion.cli import cli
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_inaccessible_relations(tmp_path, db_maker):
@@ -25,7 +24,7 @@ def test_fail_on_inaccessible_relations(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--fail-on-inaccessible-relations",
@@ -36,7 +35,6 @@ def test_fail_on_inaccessible_relations(tmp_path, db_maker):
     assert "Columns with inaccessible relations: ['b']" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker):
@@ -54,7 +52,7 @@ def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             str(test_file),

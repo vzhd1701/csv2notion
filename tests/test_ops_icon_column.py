@@ -6,7 +6,6 @@ from csv2notion.cli import cli
 from csv2notion.utils import NotionError
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_missing(tmp_path, db_maker):
@@ -19,7 +18,7 @@ def test_icon_column_missing(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--icon-column",
@@ -31,7 +30,6 @@ def test_icon_column_missing(tmp_path, db_maker):
     assert "Icon column 'icon file' not found in csv file" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_file_not_found(tmp_path, db_maker):
@@ -44,7 +42,7 @@ def test_icon_column_file_not_found(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--icon-column",
@@ -56,7 +54,6 @@ def test_icon_column_file_not_found(tmp_path, db_maker):
     assert "test_image.jpg does not exist" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_empty(tmp_path, db_maker):
@@ -68,7 +65,7 @@ def test_icon_column_empty(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--icon-column",
@@ -88,7 +85,6 @@ def test_icon_column_empty(tmp_path, db_maker):
     assert table_rows[0].icon is None
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_ok(tmp_path, smallest_gif, db_maker):
@@ -103,7 +99,7 @@ def test_icon_column_ok(tmp_path, smallest_gif, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--icon-column",
@@ -123,7 +119,6 @@ def test_icon_column_ok(tmp_path, smallest_gif, db_maker):
     assert test_image.name in table_rows[0].icon
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_url_ok(tmp_path, db_maker):
@@ -137,7 +132,7 @@ def test_icon_column_url_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--icon-column",
@@ -157,7 +152,6 @@ def test_icon_column_url_ok(tmp_path, db_maker):
     assert table_rows[0].icon == test_icon_url
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_emoji_ok(tmp_path, db_maker):
@@ -171,7 +165,7 @@ def test_icon_column_emoji_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--icon-column",
@@ -191,7 +185,6 @@ def test_icon_column_emoji_ok(tmp_path, db_maker):
     assert table_rows[0].icon == test_icon_emoji
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_keep_missing(tmp_path, db_maker):
@@ -204,7 +197,7 @@ def test_icon_column_keep_missing(tmp_path, db_maker):
         cli(
             [
                 "--token",
-                os.environ.get("NOTION_TEST_TOKEN"),
+                db_maker.token,
                 "--url",
                 test_db.url,
                 "--icon-column",
@@ -217,7 +210,6 @@ def test_icon_column_keep_missing(tmp_path, db_maker):
     assert "Icon column 'icon url' not found in csv file" in str(e.value)
 
 
-@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_icon_column_keep_ok(tmp_path, db_maker):
@@ -231,7 +223,7 @@ def test_icon_column_keep_ok(tmp_path, db_maker):
     cli(
         [
             "--token",
-            os.environ.get("NOTION_TEST_TOKEN"),
+            db_maker.token,
             "--url",
             test_db.url,
             "--icon-column",
