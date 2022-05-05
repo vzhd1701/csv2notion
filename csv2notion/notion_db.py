@@ -41,7 +41,13 @@ def make_new_db_from_csv(
             schema=schema,
         )
     )
-    page.views.add_new(view_type="table")
+
+    view = page.views.add_new(view_type="table")
+
+    # Make sure all columns are in the same order as CSV
+    table_properties = [{"visible": True, "property": col_id} for col_id in schema]
+    view.set("format.table_properties", table_properties)
+
     page.title = page_name
 
     return page.get_browseable_url()

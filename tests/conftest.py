@@ -121,6 +121,31 @@ class NotionDB(object):
         return set(self.schema_dict.keys())
 
     @property
+    def default_view(self):
+        return list(self.page.views)[0]
+
+    @property
+    def default_view_header(self):
+        header_order = self.default_view.get(
+            "format.table_properties", force_refresh=True
+        )
+
+        # if header order is not set explicitly, it will be in alphabetical order
+        if not header_order:
+            first_column = next(c["name"] for c in self.schema if c["type"] == "title")
+            other_columns = [c["name"] for c in self.schema if c["type"] != "title"]
+            return [first_column] + sorted(other_columns)
+
+        view_header = []
+        for h in header_order:
+            h_key = next(
+                k for k, v in self.schema_dict.items() if v["id"] == h["property"]
+            )
+            view_header.append(h_key)
+
+        return view_header
+
+    @property
     def schema(self):
         return self.page.collection.get_schema_properties()
 

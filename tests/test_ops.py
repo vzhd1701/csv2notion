@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from csv2notion.cli import cli, main
-from csv2notion.notion.client import NotionClient
 from csv2notion.notion_db import NotionError
 from csv2notion.utils import CriticalError
 
@@ -110,10 +109,37 @@ def test_new_page(tmp_path, caplog, db_maker):
     table_rows = test_db.rows
     table_header = test_db.header
 
-    assert test_db.page.title == "test"
+    assert test_db.page.title == db_maker.page_name
     assert test_db.page.type == "collection_view_page"
 
     assert table_header == {"a", "b", "c"}
+    assert len(table_rows) == 1
+    assert getattr(table_rows[0], "a") == "a"
+    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0], "c") == "c"
+
+
+@pytest.mark.skipif(not os.environ.get("NOTION_TEST_TOKEN"), reason="No notion token")
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_new_page_column_order(tmp_path, caplog, db_maker):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text("c,b,a\nc,b,a\n")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(["--token", os.environ.get("NOTION_TEST_TOKEN"), str(test_file)])
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    table_rows = test_db.rows
+    table_view_header = test_db.default_view_header
+
+    assert test_db.page.title == db_maker.page_name
+    assert test_db.page.type == "collection_view_page"
+
+    assert table_view_header == ["c", "b", "a"]
     assert len(table_rows) == 1
     assert getattr(table_rows[0], "a") == "a"
     assert getattr(table_rows[0], "b") == "b"
