@@ -1,4 +1,6 @@
+import logging
 import os
+import re
 
 import pytest
 
@@ -266,3 +268,62 @@ def test_merge_image_column_with_image_content_ok(tmp_path, db_maker):
     assert image.type == "image"
     assert image.caption == "cover"
     assert image.display_source == test_image_url
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_image_column_with_image_content_file_ok(
+    tmp_path, smallest_gif, db_maker, caplog
+):
+    test_image1 = tmp_path / "test_image1.gif"
+    test_image1.write_bytes(smallest_gif)
+
+    test_image2 = tmp_path / "test_image2.gif"
+    test_image2.write_bytes(smallest_gif)
+
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(f"a,b,image file\na,b,{test_image1.name}")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--image-column",
+                "image file",
+                str(test_file),
+            ]
+        )
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    test_file.write_text(f"a,b,image file\na,b,{test_image2.name}")
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--image-column",
+            "image file",
+            str(test_file),
+        ]
+    )
+
+    table_rows = test_db.rows
+    table_header = test_db.header
+    image = table_rows[0].children[0]
+
+    assert table_header == {"a", "b"}
+    assert len(table_rows) == 1
+
+    assert getattr(table_rows[0], "a") == "a"
+    assert getattr(table_rows[0], "b") == "b"
+    assert len(table_rows[0].children) == 1
+    assert image.type == "image"
+    assert image.caption == "cover"
+    assert test_image2.name in image.display_source

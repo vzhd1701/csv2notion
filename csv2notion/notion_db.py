@@ -7,6 +7,7 @@ import requests
 from csv2notion.csv_data import CSVData
 from csv2notion.notion.block import Block, ImageBlock
 from csv2notion.notion.client import NotionClient
+from csv2notion.notion.operations import build_operation
 from csv2notion.notion.utils import InvalidNotionIdentifier
 from csv2notion.notion_convert_utils import schema_from_csv
 from csv2notion.utils import NotionError, rand_id_unique
@@ -244,10 +245,22 @@ def _add_image_block(row: Block, image_url: str) -> None:
         first_block = row.children[0]
         if isinstance(first_block, ImageBlock) and first_block.caption == "cover":
             with row._client.as_atomic_transaction():
+                file_id = attrs.pop("file_id", None)
+
                 for key, value in attrs.items():
                     setattr(first_block, key, value)
+
+                if file_id:
+                    row._client.submit_transaction(
+                        build_operation(
+                            id=first_block.id,
+                            path=["file_ids"],
+                            args={"id": file_id},
+                            command="listAfter",
+                        )
+                    )
         else:
             new_block = row.children.add_new(ImageBlock, **attrs)
             new_block.move_to(row, "first-child")
     else:
-        row.children.add_new("image", **attrs)
+        row.children.add_new(ImageBlock, **attrs)
