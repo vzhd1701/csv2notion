@@ -59,7 +59,7 @@ $ poetry run csv2notion
 $ csv2notion --help
 usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--custom-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--icon-column COLUMN] [--icon-column-keep]
                   [--default-icon ICON] [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}] [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns]
-                  [--fail-on-conversion-error] [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--version]
+                  [--fail-on-conversion-error] [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--verbose] [--version]
                   FILE
 
 Import/Merge CSV file into Notion database
@@ -100,6 +100,7 @@ optional arguments:
   --mandatory-column COLUMN
                         CSV column that cannot be empty (define multiple times for multiple columns)
   --log FILE            file to store program log
+  --verbose             output debug information
   --version             show program's version number and exit
 ```
 
