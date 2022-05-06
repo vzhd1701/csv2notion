@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def cli(argv: List[str]) -> None:
     args = parse_args(argv)
 
-    setup_logging(log_file=args.log)
+    setup_logging(is_verbose=args.verbose, log_file=args.log)
 
     logger.info("Validating CSV & Notion DB schema")
 
@@ -264,6 +264,11 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
             "type": Path,
             "metavar": "FILE",
             "help": "file to store program log",
+        },
+        "--verbose": {
+            "action": "store_true",
+            "default": False,
+            "help": "output debug information",
         },
         "--version": {
             "action": "version",
