@@ -177,6 +177,7 @@ If you want to ensure that specific columns always have value and are not allowe
 - [Merging CSV with select columns in existing DB](https://github.com/vzhd1701/csv2notion/raw/master/examples/merge_only.png)
 - [Importing rows with images](https://github.com/vzhd1701/csv2notion/raw/master/examples/image_column.png)
 - [Importing rows with emoji icons](https://github.com/vzhd1701/csv2notion/raw/master/examples/icon_column.png)
+- [Updating emoji icon only for all rows](https://github.com/vzhd1701/csv2notion/raw/master/examples/default_icon_only.png)
 
 ## Getting help
 
