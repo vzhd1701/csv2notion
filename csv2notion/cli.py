@@ -1,5 +1,7 @@
 import argparse
 import logging
+import os
+import signal
 import sys
 from functools import partial
 from pathlib import Path
@@ -312,7 +314,14 @@ def critical_error(msg: str) -> None:
     sys.exit(1)
 
 
+def abort(*args):  # pragma: no cover
+    print("\nAbort")
+    os._exit(1)
+
+
 def main() -> None:
+    signal.signal(signal.SIGINT, abort)
+
     try:
         cli(sys.argv[1:])
     except (NotionError, CriticalError) as e:
