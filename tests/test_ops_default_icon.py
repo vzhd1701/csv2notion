@@ -159,3 +159,43 @@ def test_default_icon_column_priority(tmp_path, db_maker):
 
     assert table_rows[0].icon == test_icon_url_column
     assert table_rows[1].icon == test_icon_url_default
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_default_icon_merge_only(tmp_path, db_maker):
+    test_icon_emoji_default = "🤔"
+
+    test_file = tmp_path / "test.csv"
+    test_file.write_text(f"a,b\na1,b1\na2,b2")
+
+    test_db = db_maker.from_csv_head("a,b")
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--default-icon",
+            test_icon_emoji_default,
+            "--merge",
+            "--merge-only-column",
+            "a",
+            "--max-threads=1",
+            str(test_file),
+        ]
+    )
+
+    table_header = test_db.header
+    table_rows = test_db.rows
+
+    assert table_header == {"a", "b"}
+    assert len(table_rows) == 2
+    assert getattr(table_rows[0], "a") == "a1"
+    assert getattr(table_rows[0], "b") == ""
+    assert getattr(table_rows[1], "a") == "a2"
+    assert getattr(table_rows[1], "b") == ""
+
+    assert table_rows[0].icon == test_icon_emoji_default
+    assert table_rows[1].icon == test_icon_emoji_default
