@@ -165,8 +165,6 @@ class NotionDB(object):
 
         new_row = self.collection.add_row(**kwargs)
 
-        self.rows[row_data.key()] = new_row
-
         return new_row
 
     def _update_row(self, row, row_data: NotionUploadRow):
@@ -193,9 +191,6 @@ class NotionDB(object):
             }
 
         upload_data = self.client.post("getUploadFileUrl", post_data).json()
-
-        # POST https://www.notion.so/api/v3/syncRecordValues
-        # {"requests":[{"pointer":post_data["record"],"version":13}]}
 
         with open(file_path, "rb") as f:
             file_bin = f.read()

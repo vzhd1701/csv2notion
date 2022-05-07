@@ -17,10 +17,10 @@ from csv2notion.utils import (
     ALLOWED_TYPES,
     CriticalError,
     NotionError,
-    process_iter,
     setup_logging,
     split_str,
 )
+from csv2notion.utils_threading import ThreadRowUploader, process_iter
 from csv2notion.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,9 @@ def cli(argv: List[str]) -> None:
     logger.info(f"Uploading {args.csv_file.name}...")
 
     worker = partial(
-        notion_db.upload_row, is_merge=args.merge, image_mode=args.image_column_mode
+        ThreadRowUploader(args.token, args.url).worker,
+        is_merge=args.merge,
+        image_mode=args.image_column_mode,
     )
 
     tdqm_iter = tqdm(

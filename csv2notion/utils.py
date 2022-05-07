@@ -1,7 +1,6 @@
 import logging
 import random
 import string
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable, List, Optional
 
@@ -41,18 +40,6 @@ def setup_logging(is_verbose: bool = False, log_file: Optional[Path] = None) -> 
             logging.Formatter("%(asctime)s [%(levelname)-8.8s] %(message)s")
         )
         logging.getLogger("csv2notion").addHandler(file_handler)
-
-
-def process_iter(worker, tasks, max_workers):
-    if max_workers == 1:
-        for task in tasks:
-            yield worker(task)
-    else:
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(worker, t) for t in tasks]
-
-            for future in as_completed(futures):
-                yield future.result()
 
 
 def rand_id(id_length):
