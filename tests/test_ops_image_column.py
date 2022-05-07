@@ -150,7 +150,6 @@ def test_image_column_ok(tmp_path, smallest_gif, db_maker):
     assert getattr(table_rows[0], "b") == "b"
     assert len(table_rows[0].children) == 1
     assert image.type == "image"
-    assert image.caption == "cover"
     assert test_image.name in image.display_source
 
 
@@ -319,7 +318,6 @@ def test_image_column_keep_ok(tmp_path, db_maker):
     assert getattr(table_rows[0], "image url") == test_image_url
     assert len(table_rows[0].children) == 1
     assert image.type == "image"
-    assert image.caption == "cover"
     assert image.display_source == test_image_url
 
 

@@ -1,18 +1,19 @@
+import hashlib
 import mimetypes
+import re
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 import requests
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion.block import Block, ImageBlock
 from csv2notion.notion.client import NotionClient
+from csv2notion.notion.collection import CollectionRowBlock
 from csv2notion.notion.operations import build_operation
 from csv2notion.notion.utils import InvalidNotionIdentifier
 from csv2notion.notion_convert_utils import schema_from_csv
 from csv2notion.utils import NotionError, rand_id_unique
-
-S3_URL_PREFIX = "https://s3-us-west-2.amazonaws.com/secure.notion-static.com/"
 
 
 def make_new_db_from_csv(
@@ -97,27 +98,37 @@ class NotionDB(object):
         if is_merge and self.rows.get(row.key()):
             cur_row = self.rows.get(row.key())
             self._update_row(cur_row, row)
+
+            if row.image and not _is_image_changed(row.image, image_mode, cur_row):
+                row.image = None
+
+            if row.icon and not _is_icon_changed(row.icon, cur_row):
+                row.icon = None
         else:
             cur_row = self._add_row(row)
 
         if row.image:
             if isinstance(row.image, Path):
-                image_url = self._upload_file(row.image, cur_row)
+                image_url, image_meta = self._upload_file(row.image, cur_row)
             else:
                 image_url = row.image
+                image_meta = {"type": "url", "url": row.image}
 
             if image_mode == "block":
-                _add_image_block(cur_row, image_url)
+                _add_image_block(cur_row, image_url, image_meta)
             elif image_mode == "cover":
                 cur_row.cover = image_url
+                cur_row.set("properties.cover_meta", image_meta)
 
         if row.icon:
             if isinstance(row.icon, Path):
-                icon = self._upload_file(row.icon, cur_row)
+                icon, icon_meta = self._upload_file(row.icon, cur_row)
             else:
                 icon = row.icon
+                icon_meta = {"type": "url", "url": row.icon}
 
             cur_row.icon = icon
+            cur_row.set("properties.icon_meta", icon_meta)
 
     @property
     def rows(self):
@@ -202,7 +213,13 @@ class NotionDB(object):
         )
         response.raise_for_status()
 
-        return upload_data["url"]
+        file_id = _get_file_id(upload_data["url"])
+
+        return upload_data["url"], {
+            "type": "file",
+            "file_id": file_id,
+            "sha256": hashlib.sha256(file_bin).hexdigest(),
+        }
 
     def _validate_collection_duplicates(self, collection_id: str) -> bool:
         collection = self._collection(collection_id)
@@ -225,37 +242,112 @@ class NotionDB(object):
         return self.client.get_collection(collection_id, force_refresh=True)
 
 
-def _add_image_block(row: Block, image_url: str) -> None:
+def _get_file_sha256(file_path: Path) -> str:
+    with open(file_path, "rb") as f:
+        file_bin = f.read()
+    return hashlib.sha256(file_bin).hexdigest()
+
+
+def _get_file_id(image_url: str) -> Optional[str]:
+    try:
+        return re.search(r"secure.notion-static.com/([^/]+)", image_url)[1]
+    except TypeError:
+        return None
+
+
+def _add_image_block(row: Block, image_url: str, image_meta: dict) -> None:
     attrs = {
         "display_source": image_url,
         "source": image_url,
-        "caption": "cover",
     }
 
-    if S3_URL_PREFIX in image_url:
-        file_id = image_url[len(S3_URL_PREFIX) :].split("/")[0]
+    file_id = _get_file_id(image_url)
+    if file_id:
         attrs["file_id"] = file_id
 
     if row.children:
-        first_block = row.children[0]
-        if isinstance(first_block, ImageBlock) and first_block.caption == "cover":
+        image_block = _get_cover_image_block(row)
+        if image_block:
             with row._client.as_atomic_transaction():
-                file_id = attrs.pop("file_id", None)
+                # Need to add it manually, Notion SDK doesn't work here
+                attrs.pop("file_id", None)
 
                 for key, value in attrs.items():
-                    setattr(first_block, key, value)
+                    setattr(image_block, key, value)
 
                 if file_id:
                     row._client.submit_transaction(
                         build_operation(
-                            id=first_block.id,
+                            id=image_block.id,
                             path=["file_ids"],
                             args={"id": file_id},
                             command="listAfter",
                         )
                     )
         else:
-            new_block = row.children.add_new(ImageBlock, **attrs)
-            new_block.move_to(row, "first-child")
+            image_block = row.children.add_new(ImageBlock, **attrs)
+            image_block.move_to(row, "first-child")
     else:
-        row.children.add_new(ImageBlock, **attrs)
+        image_block = row.children.add_new(ImageBlock, **attrs)
+
+    image_block.set("properties.cover_meta", image_meta)
+
+
+def _get_cover_image_block(row: Block) -> Optional[ImageBlock]:
+    if not row.children:
+        return None
+
+    image_block = row.children[0]
+    if not isinstance(image_block, ImageBlock):
+        return None
+
+    if not image_block.get("properties.cover_meta"):
+        return None
+
+    return image_block
+
+
+def _is_meta_different(image, image_url: str, image_meta: dict):
+    if not image_meta:
+        return True
+
+    if isinstance(image, Path):
+        if image_meta["type"] != "file":
+            return True
+
+        file_id = _get_file_id(image_url)
+        if image_meta["file_id"] != file_id:
+            return True
+
+        file_sha256 = _get_file_sha256(image)
+        if image_meta["sha256"] != file_sha256:
+            return True
+
+    elif image_meta != {"type": "url", "url": image}:
+        return True
+
+    return False
+
+
+def _is_image_changed(image, image_mode, cur_row: CollectionRowBlock):
+    if image_mode == "block":
+        image_block = _get_cover_image_block(cur_row)
+        if not image_block:
+            return True
+
+        image_meta = image_block.get("properties.cover_meta")
+        image_url = image_block.source
+
+        return _is_meta_different(image, image_url, image_meta)
+    else:
+        image_meta = cur_row.get("properties.cover_meta")
+        image_url = cur_row.cover
+
+        return _is_meta_different(image, image_url, image_meta)
+
+
+def _is_icon_changed(image, cur_row: CollectionRowBlock):
+    icon_meta = cur_row.get("properties.icon_meta")
+    icon_url = cur_row.icon
+
+    return _is_meta_different(image, icon_url, icon_meta)

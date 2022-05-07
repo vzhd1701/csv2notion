@@ -201,8 +201,8 @@ class NotionDBMaker(object):
 def db_maker(vcr_cassette_dir, vcr_cassette_name):
     casette_path = Path(vcr_cassette_dir) / f"{vcr_cassette_name}.yaml"
 
-    # if cassette exists, no need for real token
-    if casette_path.exists():
+    # if cassette exists and no token, probably CI test
+    if casette_path.exists() and not os.environ.get("NOTION_TEST_TOKEN"):
         token = "fake_token"
     else:
         token = os.environ.get("NOTION_TEST_TOKEN")
