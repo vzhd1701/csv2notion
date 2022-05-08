@@ -57,9 +57,10 @@ $ poetry run csv2notion
 
 ```shell
 $ csv2notion --help
-usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--custom-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--icon-column COLUMN] [--icon-column-keep]
-                  [--default-icon ICON] [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}] [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns]
-                  [--fail-on-conversion-error] [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN] [--mandatory-column COLUMN] [--log FILE] [--verbose] [--version]
+usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--custom-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--image-caption-column COLUMN]
+                  [--image-caption-column-keep] [--icon-column COLUMN] [--icon-column-keep] [--default-icon ICON] [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}]
+                  [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns] [--fail-on-conversion-error] [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN]
+                  [--mandatory-column COLUMN] [--log FILE] [--verbose] [--version]
                   FILE
 
 Import/Merge CSV file into Notion database
@@ -78,6 +79,10 @@ optional arguments:
   --image-column-keep   keep image CSV column as a Notion DB column
   --image-column-mode {cover,block}
                         upload image as [cover] or insert it as [block] (default: block)
+  --image-caption-column COLUMN
+                        CSV column that points to text caption that will be added to the image block if --image-column-mode is set to 'block'
+  --image-caption-column-keep
+                        keep image caption CSV column as a Notion DB column
   --icon-column COLUMN  CSV column that points to emoji, URL or image file that will be used as page icon for that row
   --icon-column-keep    keep icon CSV column as a Notion DB column
   --default-icon ICON   Emoji, URL or image file that will be used as page icon for every row by default
@@ -155,6 +160,8 @@ The tool allows you to add an image to each row with the `--image-column` option
 By default, the tool will embed an image inside the row page. If you want it to use the image as a page cover, then set the `--image-column-mode` option to `cover`.
 
 Column specified with the `--image-column` option will not be treated as a regular column by default. If you want it to appear in Notion DB, use the `--image-column-keep` flag.
+
+To add custom caption to image block uploaded with `--image-column-mode` set to `block`, use `--image-caption-colum` option. To also keep the caption as a Notion DB column, use `--image-caption-column-keep` flag.
 
 ### Icon
 
