@@ -8,7 +8,7 @@ from csv2notion.utils import CriticalError, has_duplicates
 
 def csv_read(file_path: Path, fail_on_duplicate_columns: bool) -> list:
     try:
-        with open(file_path, "r", encoding="utf-8") as csv_file:
+        with open(file_path, "r", encoding="utf-8-sig") as csv_file:
             reader = csv.DictReader(csv_file, restval="")
             if fail_on_duplicate_columns and has_duplicates(list(reader.fieldnames)):
                 raise CriticalError("Duplicate columns found in CSV.")

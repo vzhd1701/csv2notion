@@ -90,6 +90,38 @@ def test_merge_ok(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_bom_csv_ok(tmp_path, db_maker):
+    test_file = tmp_path / "test.csv"
+    test_file.write_bytes("a,b\na,b2\n".encode("utf-8-sig"))
+
+    test_db = db_maker.from_csv_head("a,b,c")
+
+    test_db.add_row({"a": "a", "b": "b1", "c": "c1"})
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            str(test_file),
+        ]
+    )
+
+    table_rows = test_db.rows
+    table_header = test_db.header
+
+    assert table_header == {"a", "b", "c"}
+    assert len(table_rows) == 1
+
+    assert getattr(table_rows[0], "a") == "a"
+    assert getattr(table_rows[0], "b") == "b2"
+    assert getattr(table_rows[0], "c") == "c1"
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_only_column_missing(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b\na,b\n")
