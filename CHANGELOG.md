@@ -1,3 +1,19 @@
+### [0.1.2](https://github.com/vzhd1701/csv2notion/compare/v0.1.1...v0.1.2) (2022-05-08)
+
+### Features
+
+- add --image-caption-column option ([6e39128](https://github.com/vzhd1701/csv2notion/commit/6e39128ed44afab581d39698913f87ddec21278a))
+- add --verbose option ([5fcb118](https://github.com/vzhd1701/csv2notion/commit/5fcb118e2238b44c549c627d07ceda34b8a8158d))
+
+### Bug Fixes
+
+- add better thread isolation ([69305a5](https://github.com/vzhd1701/csv2notion/commit/69305a54323dfb9f2458b064802ab985ee3b69b4))
+- add support for csv with utf-8 BOM encoding ([ed97acb](https://github.com/vzhd1701/csv2notion/commit/ed97acbc763137d13a8f4dff040173d5b96a7898))
+- avoid reuploading unmodified images ([198829e](https://github.com/vzhd1701/csv2notion/commit/198829ebfb56f7fc03c0be618c23a24b8281960e))
+- handle file_ids properly on merge with images ([8865433](https://github.com/vzhd1701/csv2notion/commit/886543345ed0347eb4756da57e744be669a86b5a))
+- make it easier to abort ongoing operation ([830dc92](https://github.com/vzhd1701/csv2notion/commit/830dc922fae0590e630053ea19b1c5c4cfaa90b8))
+- prevent adding icon and image columns to new db ([989a09a](https://github.com/vzhd1701/csv2notion/commit/989a09a3b48332c6479b448f8067da03ac41516d))
+
 ### [0.1.1](https://github.com/vzhd1701/csv2notion/compare/v0.1.0...v0.1.1) (2022-05-05)
 
 ### Features
