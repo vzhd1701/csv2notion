@@ -62,9 +62,16 @@ def get_notion_client(token: str):
 
 
 class NotionUploadRow(object):
-    def __init__(self, row: dict, image: Union[str, Path], icon: Union[str, Path]):
+    def __init__(
+        self,
+        row: dict,
+        image: Union[str, Path],
+        image_caption: str,
+        icon: Union[str, Path],
+    ):
         self.row = row
         self.image = image
+        self.image_caption = image_caption
         self.icon = icon
 
     def items(self):
@@ -115,10 +122,13 @@ class NotionDB(object):
                 image_meta = {"type": "url", "url": row.image}
 
             if image_mode == "block":
-                _add_image_block(cur_row, image_url, image_meta)
+                _add_image_block(cur_row, image_url, image_meta, row.image_caption)
             elif image_mode == "cover":
                 cur_row.cover = image_url
                 cur_row.set("properties.cover_meta", image_meta)
+
+        if row.image_caption is not None and image_mode == "block" and not row.image:
+            _set_image_block_caption(cur_row, row.image_caption)
 
         if row.icon:
             if isinstance(row.icon, Path):
@@ -255,11 +265,23 @@ def _get_file_id(image_url: str) -> Optional[str]:
         return None
 
 
-def _add_image_block(row: Block, image_url: str, image_meta: dict) -> None:
+def _set_image_block_caption(row: Block, caption: str):
+    image_block = _get_cover_image_block(row)
+    if not image_block:
+        return
+    image_block.caption = caption
+
+
+def _add_image_block(
+    row: Block, image_url: str, image_meta: dict, image_caption: str
+) -> None:
     attrs = {
         "display_source": image_url,
         "source": image_url,
     }
+
+    if image_caption is not None:
+        attrs["caption"] = image_caption
 
     file_id = _get_file_id(image_url)
     if file_id:

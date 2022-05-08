@@ -108,6 +108,32 @@ def test_mandatory_column_image_empty(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
+def test_mandatory_column_image_caption_empty(tmp_path, db_maker):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b,c,image caption\n1,2,3,\n")
+
+    test_db = db_maker.from_csv_head("a,b,c")
+
+    with pytest.raises(NotionError) as e:
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--url",
+                test_db.url,
+                "--mandatory-column",
+                "image caption",
+                "--image-caption-column",
+                "image caption",
+                str(test_file),
+            ]
+        )
+
+    assert "CSV [2]: Mandatory column 'image caption' is empty" in str(e.value)
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
 def test_mandatory_column_ok(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,c\n1,2,3\n")

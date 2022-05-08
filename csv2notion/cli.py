@@ -50,6 +50,8 @@ def cli(argv: List[str]) -> None:
             skip_columns.append(args.image_column)
         if args.icon_column and not args.icon_column_keep:
             skip_columns.append(args.icon_column)
+        if args.image_caption_column and not args.image_caption_column_keep:
+            skip_columns.append(args.image_caption_column)
 
         args.url = make_new_db_from_csv(
             client,
@@ -68,6 +70,8 @@ def cli(argv: List[str]) -> None:
         "image_column_keep": args.image_column_keep,
         "icon_column": args.icon_column,
         "icon_column_keep": args.icon_column_keep,
+        "image_caption_column": args.image_caption_column,
+        "image_caption_column_keep": args.image_caption_column_keep,
         "mandatory_columns": args.mandatory_column,
         "is_merge": args.merge,
         "merge_only_columns": args.merge_only_column,
@@ -162,6 +166,19 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
             "help": (
                 "upload image as [cover] or insert it as [block]" " (default: block)"
             ),
+        },
+        "--image-caption-column": {
+            "help": (
+                "CSV column that points to text caption"
+                " that will be added to the image block"
+                " if --image-column-mode is set to 'block'"
+            ),
+            "metavar": "COLUMN",
+        },
+        "--image-caption-column-keep": {
+            "action": "store_true",
+            "default": False,
+            "help": "keep image caption CSV column as a Notion DB column",
         },
         "--icon-column": {
             "help": (

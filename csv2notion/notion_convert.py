@@ -32,6 +32,7 @@ class NotionRowConverter(object):
 
     def prepare(self, csv_data):
         self._validate_image_column(csv_data.keys())
+        self._validate_image_caption_column(csv_data.keys())
         self._validate_icon_column(csv_data.keys())
         self._vlaidate_mandatory_columns(csv_data.keys())
 
@@ -87,6 +88,7 @@ class NotionRowConverter(object):
         notion_row = {}
 
         image = self._map_image(row)
+        image_caption = self._map_image_caption(row)
         icon = self._map_icon(row)
 
         for key, value in row.items():
@@ -116,7 +118,7 @@ class NotionRowConverter(object):
             if key in self.rules["mandatory_columns"] and not notion_row[key]:
                 raise NotionError(f"Mandatory column '{key}' is empty")
 
-        return NotionUploadRow(notion_row, image, icon)
+        return NotionUploadRow(notion_row, image, image_caption, icon)
 
     def _map_icon(self, row):
         icon = None
@@ -160,6 +162,24 @@ class NotionRowConverter(object):
             if not self.rules["image_column_keep"]:
                 row.pop(self.rules["image_column"], None)
         return image
+
+    def _map_image_caption(self, row):
+        image_caption = None
+        if self.rules["image_caption_column"]:
+            image_caption = row.get(self.rules["image_caption_column"], "").strip()
+            if not image_caption and self._is_mandatory(
+                self.rules["image_caption_column"]
+            ):
+                raise NotionError(
+                    f"Mandatory column '{self.rules['image_caption_column']}' is empty"
+                )
+
+            if not self.rules["image_caption_column_keep"]:
+                row.pop(self.rules["image_caption_column"], None)
+        return image_caption
+
+    def _is_mandatory(self, key):
+        return key in self.rules["mandatory_columns"]
 
     def _relative_path(self, path):
         search_path = self.rules["files_search_path"]
@@ -241,6 +261,12 @@ class NotionRowConverter(object):
         if self.rules["image_column"] and not self.rules["image_column_keep"]:
             csv_keys -= {self.rules["image_column"]}
 
+        if (
+            self.rules["image_caption_column"]
+            and not self.rules["image_caption_column_keep"]
+        ):
+            csv_keys -= {self.rules["image_caption_column"]}
+
         if self.rules["icon_column"] and not self.rules["icon_column_keep"]:
             csv_keys -= {self.rules["icon_column"]}
 
@@ -256,6 +282,16 @@ class NotionRowConverter(object):
         if self.rules["image_column"] and self.rules["image_column"] not in csv_keys:
             raise NotionError(
                 f"Image column '{self.rules['image_column']}' not found in csv file."
+            )
+
+    def _validate_image_caption_column(self, csv_keys):
+        if (
+            self.rules["image_caption_column"]
+            and self.rules["image_caption_column"] not in csv_keys
+        ):
+            raise NotionError(
+                f"Image caption column '{self.rules['image_caption_column']}'"
+                f" not found in csv file."
             )
 
     def _validate_icon_column(self, csv_keys):
