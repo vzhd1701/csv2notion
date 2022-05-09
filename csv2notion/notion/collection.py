@@ -238,6 +238,9 @@ class Collection(Record):
         return CollectionQuery(self, self._get_a_collection_view(), **kwargs).execute()
 
     def get_rows(self, **kwargs):
+        if "limit" not in kwargs or kwargs["limit"] == -1:
+            kwargs["limit"] = self._get_total_rows()
+
         return self.query(**kwargs)
 
     def _convert_diff_to_changelist(self, difference, old_val, new_val):
@@ -255,6 +258,36 @@ class Collection(Record):
         return changes + super()._convert_diff_to_changelist(
             remaining, old_val, new_val
         )
+
+    def _get_total_rows(self):
+        data = {
+            "collection": {
+                "id": self.id,
+                "spaceId": self._client.current_space.id,
+            },
+            "collectionView": {
+                "id": self._get_a_collection_view().id,
+                "spaceId": self._client.current_space.id,
+            },
+            "loader": {
+                "reducers": {
+                    "table:uncategorized:title:count": {
+                        "aggregation": {"aggregator": "count", "property": "title"},
+                        "type": "aggregation",
+                    }
+                },
+                "searchQuery": "",
+                "sort": [],
+                "userTimeZone": str(get_localzone()),
+                "type": "reducer",
+            },
+        }
+
+        response = self._client.post("queryCollection", data).json()
+
+        return response["result"]["reducerResults"]["table:uncategorized:title:count"][
+            "aggregationResult"
+        ]["value"]
 
 
 class CollectionView(Record):
@@ -397,8 +430,20 @@ class CollectionQuery(object):
 
         if self.limit == -1:
             # fetch remote total
+            kwargs["limit"] = 100000
+
             result = self._client.query_collection(**kwargs)
-            self.limit = result.get("total", -1)
+            g_result = result["reducerResults"]["collection_group_results"]
+
+            self.limit = len(g_result["blockIds"])
+
+            while g_result["hasMore"]:
+                kwargs["limit"] += 100000
+
+                result = self._client.query_collection(**kwargs)
+                g_result = result["reducerResults"]["collection_group_results"]
+
+                self.limit = len(g_result["blockIds"])
 
         kwargs["limit"] = self.limit
 
