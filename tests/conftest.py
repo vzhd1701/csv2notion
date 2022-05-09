@@ -5,10 +5,10 @@ import uuid
 from pathlib import Path
 
 import pytest
+from notion.client import NotionClient
 from pyfakefs.fake_filesystem_unittest import Patcher
 
 from csv2notion.csv_data import CSVData
-from csv2notion.notion.client import NotionClient
 from csv2notion.notion_db import make_new_db_from_csv
 from csv2notion.utils import rand_id
 

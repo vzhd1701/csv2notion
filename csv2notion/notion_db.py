@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import requests
+from notion.block import Block, ImageBlock
+from notion.client import NotionClient
+from notion.collection import CollectionRowBlock
+from notion.operations import build_operation
+from notion.utils import InvalidNotionIdentifier
 
 from csv2notion.csv_data import CSVData
-from csv2notion.notion.block import Block, ImageBlock
-from csv2notion.notion.client import NotionClient
-from csv2notion.notion.collection import CollectionRowBlock
-from csv2notion.notion.operations import build_operation
-from csv2notion.notion.utils import InvalidNotionIdentifier
 from csv2notion.notion_convert_utils import schema_from_csv
 from csv2notion.utils import NotionError, rand_id_unique
 

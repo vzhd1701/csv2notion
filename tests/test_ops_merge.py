@@ -4,9 +4,9 @@ import os
 import re
 
 import pytest
+from notion.block import ImageBlock, TextBlock
 
 from csv2notion.cli import cli
-from csv2notion.notion.block import ImageBlock, TextBlock
 from csv2notion.utils import NotionError
 
 

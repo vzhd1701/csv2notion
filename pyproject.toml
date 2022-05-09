@@ -33,16 +33,10 @@ csv2notion = "csv2notion.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-requests = "^2.27.1"
-commonmark = "^0.9.1"
-bs4 = "^0.0.1"
-tzlocal = "^4.2"
-python-slugify = "^6.1.1"
-dictdiffer = "^0.9.0"
-cached-property = "^1.5.2"
 python-dateutil = "^2.8.2"
 tqdm = "^4.64.0"
 emoji = "^1.7.0"
+notion = {git = "https://github.com/vzhd1701/notion-py.git", rev = "ee951e0e4e36edcb8d4020810aeeaa33b9dbb4e6"}
 
 [tool.poetry.dev-dependencies]
 mdformat = "0.7.7"

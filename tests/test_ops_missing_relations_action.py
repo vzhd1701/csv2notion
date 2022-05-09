@@ -1,9 +1,9 @@
 import os
 
 import pytest
+from notion.utils import slugify
 
 from csv2notion.cli import cli
-from csv2notion.notion.utils import slugify
 from csv2notion.utils import NotionError
 
 
