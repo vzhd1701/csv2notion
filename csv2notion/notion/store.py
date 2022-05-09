@@ -308,7 +308,6 @@ class RecordStore(object):
         type="table",
         aggregate=[],
         aggregations=[],
-        filter={},
         sort=[],
         calendar_by="",
         group_by="",

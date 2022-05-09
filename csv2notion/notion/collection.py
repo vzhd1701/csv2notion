@@ -358,7 +358,6 @@ class CollectionQuery(object):
         type="table",
         aggregate=[],
         aggregations=[],
-        filter=[],
         sort=[],
         calendar_by="",
         group_by="",
@@ -373,7 +372,6 @@ class CollectionQuery(object):
         self.type = type
         self.aggregate = _normalize_query_data(aggregate, collection)
         self.aggregations = _normalize_query_data(aggregations, collection)
-        self.filter = _normalize_query_data(filter, collection)
         self.sort = _normalize_query_data(sort, collection)
         self.calendar_by = _normalize_property_name(calendar_by, collection)
         self.group_by = _normalize_property_name(group_by, collection)
@@ -391,7 +389,6 @@ class CollectionQuery(object):
             "type": self.type,
             "aggregate": self.aggregate,
             "aggregations": self.aggregations,
-            "filter": self.filter,
             "sort": self.sort,
             "calendar_by": self.calendar_by,
             "group_by": self.group_by,
