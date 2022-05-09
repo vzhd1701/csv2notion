@@ -1,3 +1,9 @@
+### [0.1.3](https://github.com/vzhd1701/csv2notion/compare/v0.1.2...v0.1.3) (2022-05-09)
+
+### Bug Fixes
+
+- avoid 100 rows limit when retrieving all rows from DB ([24244f7](https://github.com/vzhd1701/csv2notion/commit/24244f7f1ea846f8ad810565b152249e6944b51c))
+
 ### [0.1.2](https://github.com/vzhd1701/csv2notion/compare/v0.1.1...v0.1.2) (2022-05-08)
 
 ### Features
