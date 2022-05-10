@@ -321,28 +321,21 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "notion"
-version = "0.0.28"
-description = "Unofficial Python API client for Notion.so"
+name = "notion-vzhd1701-fork"
+version = "0.0.29"
+description = "Fork of https://github.com/jamalex/notion-py"
 category = "main"
 optional = false
-python-versions = ">=3.5"
-develop = false
+python-versions = ">=3.6,<4.0"
 
 [package.dependencies]
-bs4 = "*"
-cached-property = "*"
-commonmark = "*"
-dictdiffer = "*"
-python-slugify = "*"
-requests = "*"
-tzlocal = "*"
-
-[package.source]
-type = "git"
-url = "https://github.com/vzhd1701/notion-py.git"
-reference = "ee951e0e4e36edcb8d4020810aeeaa33b9dbb4e6"
-resolved_reference = "ee951e0e4e36edcb8d4020810aeeaa33b9dbb4e6"
+bs4 = ">=0.0.1,<0.0.2"
+cached-property = ">=1.5.2,<2.0.0"
+commonmark = ">=0.9.1,<0.10.0"
+dictdiffer = ">=0.9.0,<0.10.0"
+python-slugify = ">=6.1.2,<7.0.0"
+requests = ">=2.27.1,<3.0.0"
+tzlocal = ">=4.2,<5.0"
 
 [[package]]
 name = "packaging"
@@ -740,7 +733,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "e8320d0816a2d965d948ca973011850a41f6b4edb20192daa41181ccda5cca5c"
+content-hash = "6f5b745bb50afb3cb7ca86e05dc4d9c83bc0090d8ac35cc6da67bb33c49c2dcb"
 
 [metadata.files]
 atomicwrites = [
@@ -984,7 +977,10 @@ nodeenv = [
     {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
     {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
 ]
-notion = []
+notion-vzhd1701-fork = [
+    {file = "notion-vzhd1701-fork-0.0.29.tar.gz", hash = "sha256:e99b29b7fb9affa5b2667220c27645345b79d5ab52607565c5abf17c882039d5"},
+    {file = "notion_vzhd1701_fork-0.0.29-py3-none-any.whl", hash = "sha256:70cb8f4af3b26088e93a09bd1b6caeebfc120e35f36093d039557a46be04f3c6"},
+]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
