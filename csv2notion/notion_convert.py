@@ -91,6 +91,8 @@ class NotionRowConverter(object):
         image_caption = self._map_image_caption(row)
         icon = self._map_icon(row)
 
+        last_edited_time = None
+
         for key, value in row.items():
             if not self.db.schema.get(key):
                 continue
@@ -101,6 +103,8 @@ class NotionRowConverter(object):
                 "relation": partial(self._map_relation, key),
                 "checkbox": map_checkbox,
                 "date": map_date,
+                "created_time": map_date,
+                "last_edited_time": map_date,
                 "multi_select": split_str,
                 "number": map_number,
             }
@@ -118,7 +122,21 @@ class NotionRowConverter(object):
             if key in self.rules["mandatory_columns"] and not notion_row[key]:
                 raise NotionError(f"Mandatory column '{key}' is empty")
 
-        return NotionUploadRow(notion_row, image, image_caption, icon)
+            # These cannot be None, server will set them if they are missing
+            if notion_row[key] is None and value_type == "created_time":
+                notion_row.pop(key)
+
+            # There can only be one last_edited_time, picking last column if multiple
+            if value_type == "last_edited_time":
+                last_edited_time = notion_row.pop(key)
+
+        return NotionUploadRow(
+            row=notion_row,
+            image=image,
+            image_caption=image_caption,
+            icon=icon,
+            last_edited_time=last_edited_time,
+        )
 
     def _map_icon(self, row):
         icon = None

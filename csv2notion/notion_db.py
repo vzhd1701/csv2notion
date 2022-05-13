@@ -1,6 +1,7 @@
 import hashlib
 import mimetypes
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -68,11 +69,13 @@ class NotionUploadRow(object):
         image: Union[str, Path],
         image_caption: str,
         icon: Union[str, Path],
+        last_edited_time: Optional[datetime],
     ):
         self.row = row
         self.image = image
         self.image_caption = image_caption
         self.icon = icon
+        self.last_edited_time = last_edited_time
 
     def items(self):
         return self.row.items()
@@ -139,6 +142,9 @@ class NotionDB(object):
 
             cur_row.icon = icon
             cur_row.set("properties.icon_meta", icon_meta)
+
+        if row.last_edited_time:
+            _set_last_edited_time(cur_row, row.last_edited_time)
 
     @property
     def rows(self):
@@ -327,6 +333,18 @@ def _get_cover_image_block(row: Block) -> Optional[ImageBlock]:
         return None
 
     return image_block
+
+
+def _set_last_edited_time(row: Block, time: datetime):
+    row._client.submit_transaction(
+        build_operation(
+            id=row.id,
+            path="last_edited_time",
+            args=int(time.timestamp() * 1000),
+            table=row._table,
+        ),
+        update_last_edited=False,
+    )
 
 
 def _is_meta_different(image, image_url: str, image_meta: dict):

@@ -15,6 +15,8 @@ ALLOWED_TYPES = frozenset(
         "phone_number",
         "url",
         "text",
+        "created_time",
+        "last_edited_time",
     ]
 )
 
