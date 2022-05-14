@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from csv2notion.cli import cli, main
-from csv2notion.utils import CriticalError, NotionError
+from csv2notion.utils_exceptions import CriticalError, NotionError
 
 
 def test_no_args():

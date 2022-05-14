@@ -1,9 +1,10 @@
+import math
 import re
 from typing import List
 
 
-def guess_type_by_values(values: List[str]) -> str:
-    unique_values = set(filter(None, values))
+def guess_type_by_values(values_str: List[str]) -> str:
+    unique_values = set(filter(None, values_str))
 
     match_map = {
         "text": is_empty,
@@ -24,15 +25,13 @@ def guess_type_by_values(values: List[str]) -> str:
 
 def is_number(s: str) -> bool:
     try:
-        num = float(s)
-        is_number = num == num  # check for NaN
+        return not math.isnan(float(s))
     except ValueError:
-        is_number = False
-    return is_number
+        return False
 
 
 def is_url(s: str) -> bool:
-    return re.match(r"^https?://", s) is not None
+    return re.match("^https?://", s) is not None
 
 
 def is_email(s: str) -> bool:

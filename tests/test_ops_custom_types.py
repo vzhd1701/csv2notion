@@ -7,7 +7,7 @@ import pytest
 from dateutil.tz import tz
 
 from csv2notion.cli import cli
-from csv2notion.utils import CriticalError
+from csv2notion.utils_exceptions import CriticalError
 
 
 def test_custom_types_bad():

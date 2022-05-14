@@ -10,7 +10,7 @@ from pyfakefs.fake_filesystem_unittest import Patcher
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_db import make_new_db_from_csv
-from csv2notion.utils import rand_id
+from csv2notion.utils_rand_id import rand_id
 
 
 @pytest.fixture(scope="module")

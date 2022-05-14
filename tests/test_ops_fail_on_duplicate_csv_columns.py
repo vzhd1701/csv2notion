@@ -3,7 +3,7 @@ import os
 import pytest
 
 from csv2notion.cli import cli
-from csv2notion.utils import CriticalError
+from csv2notion.utils_exceptions import CriticalError
 
 
 def test_fail_on_duplicate_csv_columns(tmp_path):

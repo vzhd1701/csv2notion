@@ -48,6 +48,45 @@ pytest-vcr = "^1.0.2"
 black = "^22.3.0"
 isort = "^5.10.1"
 pre-commit = "^2.18.1"
+wemake-python-styleguide = "^0.16.1"
+flakehell = "^0.9.0"
+flake8 = "3.9.0"
+
+[tool.flakehell]
+base = "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/flakehell.toml"
+extended_default_ignore=[]
+max_line_length = 88
+exclude = [
+    "tests/*.py",
+]
+
+[tool.flakehell.plugins]
+# Disabled [personal preference]
+# WPS111 short names
+# WPS305 forbids f-strings
+# WPS326 implicit line concat
+# Docstings, don't have any
+# WPS226 String constant overuse
+# WPS437 protected attributes (needed for Notion sdk)
+
+# Exceptions [false positives & formatting]
+# C812 trailing comma <- handled by black
+# E203 whitespace before : <- handled by black
+# W503 Line break occurred before a binary operator
+# WPS317 Indentation for parameters <- handled by black
+# WPS323 `%` string formatting, log format
+
+pycodestyle = ["+*", "-E203", "-W503"]
+flake8-commas = ["+*", "-C812"]
+flake8-quotes = ["+*", "-Q000"]
+flake8-rst-docstrings = ["-*"]
+flake8-docstrings = ["-*"]
+flake8-darglint = ["-*"]
+wemake-python-styleguide = ["+*", "-WPS111", "-WPS226", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS437"]
+
+[tool.flakehell.exceptions."csv2notion/version.py"]
+# I like it this way
+wemake-python-styleguide = ["-WPS410"]
 
 [tool.black]
 line-length = 88
