@@ -12,86 +12,15 @@ from csv2notion.notion_convert_utils import (
     map_number,
 )
 from csv2notion.notion_db import NotionDB, NotionUploadRow
-from csv2notion.utils import UNSETTABLE_TYPES, NotionError, split_str
+from csv2notion.utils import NotionError, split_str
 
 logger = logging.getLogger(__name__)
-
-
-def _validate_csv_duplicates(csv_data):
-    first_column_values = [v[csv_data.keys()[0]] for v in csv_data]
-    if len(set(first_column_values)) != len(first_column_values):
-        raise NotionError("Duplicate values found in first column in CSV.")
-
-
-def _drop_columns(columns, csv_data: CSVData):
-    for column in columns:
-        csv_data.drop_column(column)
 
 
 class NotionRowConverter(object):
     def __init__(self, db: NotionDB, conversion_rules: dict):
         self.db = db
         self.rules = conversion_rules
-
-    def prepare(self, csv_data):
-        self._validate_image_column(csv_data.keys())
-        self._validate_image_caption_column(csv_data.keys())
-        self._validate_icon_column(csv_data.keys())
-        self._vlaidate_mandatory_columns(csv_data.keys())
-
-        if self.rules["is_merge"]:
-            self._validate_key_column(csv_data.keys()[0])
-
-            if self.rules["merge_only_columns"]:
-                self._vlaidate_merge_only_columns(csv_data.keys())
-                ignored_columns = set(csv_data.keys()[1:]) - set(
-                    self.rules["merge_only_columns"]
-                )
-                _drop_columns(ignored_columns, csv_data)
-
-        missing_columns = self._get_missing_columns(csv_data.keys())
-        if missing_columns:
-            warn_text = f"CSV columns missing from Notion DB: {missing_columns}"
-
-            if self.rules["missing_columns_action"] == "add":
-                logger.info(f"Adding missing columns to the DB: {missing_columns}")
-                self._add_columns(missing_columns, csv_data)
-            elif self.rules["missing_columns_action"] == "fail":
-                raise NotionError(warn_text)
-            else:
-                logger.warning(warn_text)
-
-        unsupported_columns = self._get_unsupported_columns(csv_data.keys())
-        if unsupported_columns:
-            warn_text = (
-                f"Cannot set value to these columns"
-                f" due to unsupported type: {unsupported_columns}"
-            )
-
-            if self.rules["fail_on_unsupported_columns"]:
-                raise NotionError(warn_text)
-            else:
-                logger.warning(warn_text)
-
-            _drop_columns(unsupported_columns, csv_data)
-
-        inaccessible_relations = self._get_inaccessible_relations(csv_data.keys())
-        if inaccessible_relations:
-            warn_text = f"Columns with inaccessible relations: {inaccessible_relations}"
-
-            if self.rules["fail_on_inaccessible_relations"]:
-                raise NotionError(warn_text)
-            else:
-                logger.warning(warn_text)
-
-            _drop_columns(inaccessible_relations, csv_data)
-
-        if self.rules["fail_on_relation_duplicates"]:
-            self._validate_relations_duplicates(csv_data.keys())
-
-        if self.rules["fail_on_duplicates"]:
-            _validate_csv_duplicates(csv_data)
-            self._validate_db_duplicates()
 
     def convert_to_notion_rows(self, csv_data: CSVData):
         result = []
@@ -103,11 +32,7 @@ class NotionRowConverter(object):
 
         return result
 
-    def _add_columns(self, columns, csv_data: CSVData):
-        for column in columns:
-            self.db.add_column(column, csv_data.col_type(column))
-
-    def _convert_row(self, row):
+    def _convert_row(self, row: dict):
         notion_row = {}
 
         image = self._map_image(row)
@@ -258,107 +183,3 @@ class NotionRowConverter(object):
                         f" is not a valid value."
                     )
         return result
-
-    def _validate_db_duplicates(self):
-        if self.db.is_db_has_duplicates():
-            raise NotionError("Duplicate values found in DB key column.")
-
-    def _validate_relations_duplicates(self, keys):
-        relation_keys = [
-            s_name
-            for s_name, s in self.db.schema.items()
-            if s["type"] == "relation" and s_name in keys
-        ]
-
-        for relation in relation_keys:
-            if self.db.is_relation_has_duplicates(relation):
-                relation_name = self.db.relation(relation)["name"]
-                raise NotionError(
-                    f"Collection DB '{relation_name}' used in '{relation}'"
-                    f" relation column has duplicates which"
-                    f" cannot be unambiguously mapped with CSV data."
-                )
-
-    def _get_unsupported_columns(self, keys):
-        return [
-            k
-            for k in keys
-            if k in self.db.schema and self.db.schema[k]["type"] in UNSETTABLE_TYPES
-        ]
-
-    def _get_inaccessible_relations(self, keys):
-        relation_keys = [
-            s_name
-            for s_name, s in self.db.schema.items()
-            if s["type"] == "relation" and s_name in keys
-        ]
-
-        inaccessible_relations = []
-
-        for relation_key in relation_keys:
-            try:
-                self.db.relation(relation_key)
-            except KeyError:
-                inaccessible_relations.append(relation_key)
-
-        return inaccessible_relations
-
-    def _get_missing_columns(self, column_keys):
-        csv_keys = set(column_keys)
-        schema_keys = set(self.db.schema)
-
-        if self.rules["image_column"] and not self.rules["image_column_keep"]:
-            csv_keys -= {self.rules["image_column"]}
-
-        if (
-            self.rules["image_caption_column"]
-            and not self.rules["image_caption_column_keep"]
-        ):
-            csv_keys -= {self.rules["image_caption_column"]}
-
-        if self.rules["icon_column"] and not self.rules["icon_column_keep"]:
-            csv_keys -= {self.rules["icon_column"]}
-
-        return csv_keys - schema_keys
-
-    def _validate_key_column(self, key_column: str):
-        if key_column not in self.db.schema:
-            raise NotionError(f"Key column '{key_column}' does not exist in Notion DB.")
-        if self.db.schema[key_column]["type"] != "title":
-            raise NotionError(f"Notion DB column '{key_column}' is not a key column.")
-
-    def _validate_image_column(self, csv_keys):
-        if self.rules["image_column"] and self.rules["image_column"] not in csv_keys:
-            raise NotionError(
-                f"Image column '{self.rules['image_column']}' not found in csv file."
-            )
-
-    def _validate_image_caption_column(self, csv_keys):
-        if (
-            self.rules["image_caption_column"]
-            and self.rules["image_caption_column"] not in csv_keys
-        ):
-            raise NotionError(
-                f"Image caption column '{self.rules['image_caption_column']}'"
-                f" not found in csv file."
-            )
-
-    def _validate_icon_column(self, csv_keys):
-        if self.rules["icon_column"] and self.rules["icon_column"] not in csv_keys:
-            raise NotionError(
-                f"Icon column '{self.rules['icon_column']}' not found in csv file."
-            )
-
-    def _vlaidate_mandatory_columns(self, csv_keys):
-        missing_columns = set(self.rules["mandatory_columns"]) - set(csv_keys)
-        if missing_columns:
-            raise NotionError(
-                f"Mandatory column(s) {missing_columns} not found in csv file."
-            )
-
-    def _vlaidate_merge_only_columns(self, csv_keys):
-        missing_columns = set(self.rules["merge_only_columns"]) - set(csv_keys)
-        if missing_columns:
-            raise NotionError(
-                f"Merge only column(s) {missing_columns} not found in csv file."
-            )

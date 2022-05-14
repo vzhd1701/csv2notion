@@ -13,6 +13,7 @@ from csv2notion.csv_data import CSVData
 from csv2notion.notion_convert import NotionRowConverter
 from csv2notion.notion_convert_utils import map_icon
 from csv2notion.notion_db import NotionDB, get_notion_client, make_new_db_from_csv
+from csv2notion.notion_preparator import NotionPreparator
 from csv2notion.utils import (
     ALLOWED_TYPES,
     CriticalError,
@@ -84,9 +85,9 @@ def cli(argv: List[str]) -> None:
         "fail_on_unsupported_columns": args.fail_on_unsupported_columns,
     }
 
-    converter = NotionRowConverter(notion_db, conversion_rules)
+    NotionPreparator(notion_db, csv_data, conversion_rules).prepare()
 
-    converter.prepare(csv_data)
+    converter = NotionRowConverter(notion_db, conversion_rules)
     notion_rows = converter.convert_to_notion_rows(csv_data)
 
     logger.info(f"Uploading {args.csv_file.name}...")
