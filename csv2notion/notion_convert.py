@@ -123,11 +123,12 @@ class NotionRowConverter(object):
                 raise NotionError(f"Mandatory column '{key}' is empty")
 
             # These cannot be None, server will set them if they are missing
-            if notion_row[key] is None and value_type == "created_time":
-                notion_row.pop(key)
+            if notion_row[key] is None:
+                if value_type in {"created_time", "last_edited_time"}:
+                    notion_row.pop(key)
 
             # There can only be one last_edited_time, picking last column if multiple
-            if value_type == "last_edited_time":
+            if notion_row.get(key) and value_type == "last_edited_time":
                 last_edited_time = notion_row.pop(key)
 
         return NotionUploadRow(
