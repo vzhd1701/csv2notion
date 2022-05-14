@@ -74,3 +74,7 @@ def test_fail_on_unsupported_columns_ok(tmp_path, caplog, db_maker):
     assert isinstance(getattr(table_rows[0], "c"), User)
     assert getattr(table_rows[0], "d") is None
     assert getattr(table_rows[0], "e") is None
+    assert (
+        "Cannot set value to these columns"
+        " due to unsupported type: ['b', 'c', 'd', 'e']" in caplog.text
+    )

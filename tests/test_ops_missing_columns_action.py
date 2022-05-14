@@ -1,4 +1,4 @@
-import os
+import logging
 
 import pytest
 
@@ -32,23 +32,24 @@ def test_missing_columns_action_fail(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_missing_columns_action_ignore(tmp_path, db_maker):
+def test_missing_columns_action_ignore(tmp_path, db_maker, caplog):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,c\n1,2,3\n")
 
     test_db = db_maker.from_csv_head("a,b")
 
-    cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--missing-columns-action",
-            "ignore",
-            str(test_file),
-        ]
-    )
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--url",
+                test_db.url,
+                "--missing-columns-action",
+                "ignore",
+                str(test_file),
+            ]
+        )
 
     table_header = {c["name"] for c in test_db.schema}
     table_rows = test_db.rows
@@ -57,27 +58,29 @@ def test_missing_columns_action_ignore(tmp_path, db_maker):
     assert len(table_rows) == 1
     assert getattr(table_rows[0], "a") == "1"
     assert getattr(table_rows[0], "b") == "2"
+    assert "CSV columns missing from Notion DB: {'c'}" in caplog.text
 
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_missing_columns_action_add(tmp_path, db_maker):
+def test_missing_columns_action_add(tmp_path, db_maker, caplog):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,c\na,b,c\n")
 
     test_db = db_maker.from_csv_head("a,b")
 
-    cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--missing-columns-action",
-            "add",
-            str(test_file),
-        ]
-    )
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--url",
+                test_db.url,
+                "--missing-columns-action",
+                "add",
+                str(test_file),
+            ]
+        )
 
     test_db.refresh()
 
@@ -89,3 +92,4 @@ def test_missing_columns_action_add(tmp_path, db_maker):
     assert getattr(table_rows[0], "a") == "a"
     assert getattr(table_rows[0], "b") == "b"
     assert getattr(table_rows[0], "c") == "c"
+    assert "Adding missing columns to the DB: {'c'}" in caplog.text

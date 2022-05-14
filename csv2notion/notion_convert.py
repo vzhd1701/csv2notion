@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 from pathlib import Path
 
@@ -12,6 +13,8 @@ from csv2notion.notion_convert_utils import (
 )
 from csv2notion.notion_db import NotionDB, NotionUploadRow
 from csv2notion.utils import UNSETTABLE_TYPES, NotionError, split_str
+
+logger = logging.getLogger(__name__)
 
 
 def _validate_csv_duplicates(csv_data):
@@ -48,28 +51,39 @@ class NotionRowConverter(object):
 
         missing_columns = self._get_missing_columns(csv_data.keys())
         if missing_columns:
+            warn_text = f"CSV columns missing from Notion DB: {missing_columns}"
+
             if self.rules["missing_columns_action"] == "add":
+                logger.info(f"Adding missing columns to the DB: {missing_columns}")
                 self._add_columns(missing_columns, csv_data)
             elif self.rules["missing_columns_action"] == "fail":
-                raise NotionError(
-                    f"CSV columns missing from Notion DB: {missing_columns}"
-                )
+                raise NotionError(warn_text)
+            else:
+                logger.warning(warn_text)
 
         unsupported_columns = self._get_unsupported_columns(csv_data.keys())
         if unsupported_columns:
+            warn_text = (
+                f"Cannot set value to these columns"
+                f" due to unsupported type: {unsupported_columns}"
+            )
+
             if self.rules["fail_on_unsupported_columns"]:
-                raise NotionError(
-                    f"Cannot set value to these columns"
-                    f" due to unsupported type: {unsupported_columns}"
-                )
+                raise NotionError(warn_text)
+            else:
+                logger.warning(warn_text)
+
             _drop_columns(unsupported_columns, csv_data)
 
         inaccessible_relations = self._get_inaccessible_relations(csv_data.keys())
         if inaccessible_relations:
+            warn_text = f"Columns with inaccessible relations: {inaccessible_relations}"
+
             if self.rules["fail_on_inaccessible_relations"]:
-                raise NotionError(
-                    f"Columns with inaccessible relations: {inaccessible_relations}"
-                )
+                raise NotionError(warn_text)
+            else:
+                logger.warning(warn_text)
+
             _drop_columns(inaccessible_relations, csv_data)
 
         if self.rules["fail_on_relation_duplicates"]:

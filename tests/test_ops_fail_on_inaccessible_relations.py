@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pytest
@@ -37,7 +38,7 @@ def test_fail_on_inaccessible_relations(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker):
+def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker, caplog):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b\na,b\n")
 
@@ -49,15 +50,16 @@ def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker):
     # delete relation page to make it inaccessible
     test_db_relation.remove()
 
-    cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            str(test_file),
-        ]
-    )
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--url",
+                test_db.url,
+                str(test_file),
+            ]
+        )
 
     table_main_rows = test_db.rows
     table_main_header = test_db.header
@@ -67,3 +69,4 @@ def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker):
 
     assert getattr(table_main_rows[0], "a") == "a"
     assert getattr(table_main_rows[0], "b") == []
+    assert "Columns with inaccessible relations: ['b']" in caplog.text
