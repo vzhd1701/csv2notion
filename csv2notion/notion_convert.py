@@ -11,7 +11,7 @@ from csv2notion.notion_convert_utils import (
     map_number,
 )
 from csv2notion.notion_db import NotionDB, NotionUploadRow
-from csv2notion.utils import NotionError, split_str
+from csv2notion.utils import UNSETTABLE_TYPES, NotionError, split_str
 
 
 def _validate_csv_duplicates(csv_data):
@@ -54,6 +54,15 @@ class NotionRowConverter(object):
                 raise NotionError(
                     f"CSV columns missing from Notion DB: {missing_columns}"
                 )
+
+        unsupported_columns = self._get_unsupported_columns(csv_data.keys())
+        if unsupported_columns:
+            if self.rules["fail_on_unsupported_columns"]:
+                raise NotionError(
+                    f"Cannot set value to these columns"
+                    f" due to unsupported type: {unsupported_columns}"
+                )
+            _drop_columns(unsupported_columns, csv_data)
 
         inaccessible_relations = self._get_inaccessible_relations(csv_data.keys())
         if inaccessible_relations:
@@ -255,6 +264,13 @@ class NotionRowConverter(object):
                     f" relation column has duplicates which"
                     f" cannot be unambiguously mapped with CSV data."
                 )
+
+    def _get_unsupported_columns(self, keys):
+        return [
+            k
+            for k in keys
+            if k in self.db.schema and self.db.schema[k]["type"] in UNSETTABLE_TYPES
+        ]
 
     def _get_inaccessible_relations(self, keys):
         relation_keys = [

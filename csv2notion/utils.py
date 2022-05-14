@@ -17,8 +17,14 @@ ALLOWED_TYPES = frozenset(
         "text",
         "created_time",
         "last_edited_time",
+        "created_by",
+        "last_edited_by",
+        "rollup",
+        "formula",
     ]
 )
+
+UNSETTABLE_TYPES = frozenset(["created_by", "last_edited_by", "rollup", "formula"])
 
 
 class CriticalError(Exception):

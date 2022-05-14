@@ -81,6 +81,7 @@ def cli(argv: List[str]) -> None:
         "fail_on_duplicates": args.fail_on_duplicates,
         "fail_on_conversion_error": args.fail_on_conversion_error,
         "fail_on_inaccessible_relations": args.fail_on_inaccessible_relations,
+        "fail_on_unsupported_columns": args.fail_on_unsupported_columns,
     }
 
     converter = NotionRowConverter(notion_db, conversion_rules)
@@ -254,6 +255,15 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
                 "fail if any relation column points to a Notion DB that"
                 " is not accessible to the current user;"
                 " otherwise those columns will be ignored"
+            ),
+        },
+        "--fail-on-unsupported-columns": {
+            "action": "store_true",
+            "default": False,
+            "help": (
+                "fail if DB has columns that are not supported by this tool;"
+                " otherwise those columns will be ignored"
+                " (columns with type created_by, last_edited_by, rollup or formula)"
             ),
         },
         "--merge": {
