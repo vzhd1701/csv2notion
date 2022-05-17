@@ -37,5 +37,5 @@ def map_icon(s: str) -> Union[str, Path]:
     return s if is_url(s) or is_emoji(s) else Path(s)
 
 
-def map_image(s: str) -> Union[str, Path]:
+def map_url_or_file(s: str) -> Union[str, Path]:
     return s if is_url(s) else Path(s)

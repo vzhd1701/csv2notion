@@ -789,3 +789,262 @@ def test_merge_icon_column_with_content_reupload_manually_replaced(
     assert getattr(table_rows[0], "b") == "b"
     assert len(table_rows[0].children) == 0
     assert test_icon2.name in table_rows[0].icon
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_custom_types_file_with_content_no_reupload(
+    tmp_path, db_maker, smallest_gif, caplog
+):
+    test_icon = tmp_path / "test_icon1.gif"
+    test_icon.write_bytes(smallest_gif)
+
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(f"a,b\na,{test_icon.name}")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--custom-types",
+                "file",
+                str(test_file),
+            ]
+        )
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    pre_file_url = getattr(test_db.rows[0], "b")[0]
+    pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--custom-types",
+            "file",
+            str(test_file),
+        ]
+    )
+
+    table_rows = test_db.rows
+    table_header = test_db.header
+
+    post_file_url = getattr(test_db.rows[0], "b")[0]
+    post_file_id = re.search("secure.notion-static.com/([^/]+)", post_file_url)[1]
+
+    assert table_header == {"a", "b"}
+    assert len(table_rows) == 1
+
+    assert getattr(table_rows[0], "a") == "a"
+    assert pre_file_id == post_file_id
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_custom_types_file_with_content_reupload(
+    tmp_path, smallest_gif, db_maker, caplog
+):
+    test_image1 = tmp_path / "test_image1.gif"
+    test_image1.write_bytes(smallest_gif)
+
+    test_image2_bytes = smallest_gif + b"0"
+    test_image2 = tmp_path / "test_image2.gif"
+    test_image2.write_bytes(test_image2_bytes)
+
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(f"a,b\na,{test_image1.name}")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--custom-types",
+                "file",
+                str(test_file),
+            ]
+        )
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    pre_file_url = getattr(test_db.rows[0], "b")[0]
+    pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
+
+    test_file.write_text(f"a,b\na,{test_image2.name}")
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--custom-types",
+            "file",
+            str(test_file),
+        ]
+    )
+
+    post_file_url = getattr(test_db.rows[0], "b")[0]
+    post_file_id = re.search("secure.notion-static.com/([^/]+)", post_file_url)[1]
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert getattr(test_db.rows[0], "a") == "a"
+    assert pre_file_id != post_file_id
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_custom_types_file_with_content_upload_on_empty(
+    tmp_path, smallest_gif, db_maker, caplog
+):
+    test_image = tmp_path / "test_image.gif"
+    test_image.write_bytes(smallest_gif)
+
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(f"a,b\na,")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--custom-types",
+                "file",
+                str(test_file),
+            ]
+        )
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    test_file.write_text(f"a,b\na,{test_image.name}")
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--custom-types",
+            "file",
+            str(test_file),
+        ]
+    )
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert getattr(test_db.rows[0], "a") == "a"
+    assert test_image.name in getattr(test_db.rows[0], "b")[0]
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker, caplog):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(f"a,b\na,https://via.placeholder.com/100")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--custom-types",
+                "file",
+                str(test_file),
+            ]
+        )
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    test_file.write_text(
+        f'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
+    )
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--custom-types",
+            "file",
+            str(test_file),
+        ]
+    )
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert getattr(test_db.rows[0], "a") == "a"
+    assert getattr(test_db.rows[0], "b") == [
+        "https://via.placeholder.com/100",
+        "https://via.placeholder.com/200",
+    ]
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker, caplog):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(
+        'a,b\na,"https://via.placeholder.com/200, https://via.placeholder.com/100"'
+    )
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(
+            [
+                "--token",
+                db_maker.token,
+                "--custom-types",
+                "file",
+                str(test_file),
+            ]
+        )
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    test_file.write_text(
+        f'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
+    )
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--custom-types",
+            "file",
+            str(test_file),
+        ]
+    )
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert getattr(test_db.rows[0], "a") == "a"
+    assert getattr(test_db.rows[0], "b") == [
+        "https://via.placeholder.com/100",
+        "https://via.placeholder.com/200",
+    ]

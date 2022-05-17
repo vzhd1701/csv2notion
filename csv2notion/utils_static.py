@@ -15,6 +15,7 @@ ALLOWED_TYPES = frozenset(
         "last_edited_by",
         "rollup",
         "formula",
+        "file",
     )
 )
 

@@ -8,8 +8,8 @@ from csv2notion.notion_convert_map import (
     map_checkbox,
     map_date,
     map_icon,
-    map_image,
     map_number,
+    map_url_or_file,
 )
 from csv2notion.notion_db import NotionDB
 from csv2notion.notion_uploader import NotionUploadRow
@@ -39,18 +39,20 @@ class NotionRowConverter(object):  # noqa:  WPS214
         image_caption = self._map_image_caption(row)
         icon = self._map_icon(row)
 
-        notion_row, last_edited_time = self._map_columns(row)
+        notion_row, file_columns, last_edited_time = self._map_columns(row)
 
         return NotionUploadRow(
             row=notion_row,
             image=image,
             image_caption=image_caption,
             icon=icon,
+            file_columns=file_columns,
             last_edited_time=last_edited_time,
         )
 
     def _map_columns(self, row):
         notion_row = {}
+        file_columns = {}
         last_edited_time = None
 
         for col_key, col_value in row.items():
@@ -69,7 +71,10 @@ class NotionRowConverter(object):  # noqa:  WPS214
             if col_type == "last_edited_time":
                 last_edited_time = notion_row.pop(col_key, None)
 
-        return notion_row, last_edited_time
+            if col_type == "file":
+                file_columns[col_key] = notion_row.pop(col_key)
+
+        return notion_row, file_columns, last_edited_time
 
     def _map_column(self, col_key, col_value, value_type):
         conversion_map = {
@@ -80,6 +85,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
             "last_edited_time": map_date,
             "multi_select": split_str,
             "number": map_number,
+            "file": self._map_file,
         }
 
         try:
@@ -119,7 +125,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
         if self.rules["image_column"]:
             image = row.get(self.rules["image_column"], "").strip()
             if image:
-                image = map_image(image)
+                image = map_url_or_file(image)
                 if isinstance(image, Path):
                     image = self._relative_path(image)
             else:
@@ -143,6 +149,26 @@ class NotionRowConverter(object):  # noqa:  WPS214
             if not self.rules["image_caption_column_keep"]:
                 row.pop(self.rules["image_caption_column"], None)
         return image_caption
+
+    def _map_file(self, s: str) -> list:
+        col_value = split_str(s)
+
+        resolved_uris = []
+        for v in col_value:
+            file_uri = map_url_or_file(v)
+            if isinstance(file_uri, Path):
+                file_uri = self._relative_path(file_uri)
+
+                if _is_banned_extension(file_uri):
+                    raise NotionError(
+                        f"File extension '*{file_uri.suffix}' is not allowed"
+                        f" to upload on Notion."
+                    )
+
+            if file_uri not in resolved_uris:
+                resolved_uris.append(file_uri)
+
+        return resolved_uris
 
     def _raise_if_mandatory_empty(self, col_key, col_value):
         is_mandatory = col_key in self.rules["mandatory_columns"]
@@ -169,8 +195,8 @@ class NotionRowConverter(object):  # noqa:  WPS214
         resolved_relations = []
         for v in col_value:
             resolved_relation = self._resolve_relation(relation_column, v)
-            if resolved_relation:
-                resolved_relations.append(self._resolve_relation(relation_column, v))
+            if resolved_relation and resolved_relation not in resolved_relations:
+                resolved_relations.append(resolved_relation)
 
         return resolved_relations
 
@@ -191,3 +217,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
                 )
 
             return None
+
+
+def _is_banned_extension(file_path: Path) -> bool:
+    return file_path.suffix in {".exe", ".com", ".js"}
