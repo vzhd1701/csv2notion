@@ -7,7 +7,8 @@ on:
 
 env:
   BUILD_PYTHON_VERSION: 3.8
-  BUILD_POETRY_VERSION: 1.1.11
+  BUILD_POETRY_VERSION: 1.1.13
+  PACKAGE_NAME: csv2notion
 
 jobs:
   release:
@@ -33,3 +34,10 @@ jobs:
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: poetry publish
+
+      - name: Update Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          token: ${{ secrets.BREW_BUMP_TOKEN }}
+          tap: vzhd1701/tap
+          formula: ${{ env.PACKAGE_NAME }}
