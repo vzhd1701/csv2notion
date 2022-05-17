@@ -118,11 +118,13 @@ def make_new_db_from_csv(
         "block",
         client.current_space,
         type="collection_view_page",
-        permissions={
-            "role": "editor",
-            "type": "user_permission",
-            "user_id": client.current_user.id,
-        },
+        permissions=[
+            {
+                "role": "editor",
+                "type": "user_permission",
+                "user_id": client.current_user.id,
+            }
+        ],
     )
     page = client.get_block(page_id)
 
