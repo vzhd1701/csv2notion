@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
+from itertools import starmap
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from notion.collection import CollectionRowBlock
 from notion.operations import build_operation
@@ -14,14 +15,17 @@ from csv2notion.notion_uploader_image_block import (
     set_image_block_caption,
 )
 
+FileType = Union[str, Path]
+FileColumns = Dict[str, List[FileType]]
+
 
 @dataclass
 class NotionUploadRow(object):
     row: dict
-    image: Optional[Union[str, Path]]
+    image: Optional[FileType]
     image_caption: Optional[str]
-    icon: Optional[Union[str, Path]]
-    file_columns: Optional[Dict[str, List[Union[str, Path]]]]
+    icon: Optional[FileType]
+    file_columns: Optional[FileColumns]
     last_edited_time: Optional[datetime]
 
     def key(self):
@@ -57,26 +61,28 @@ class NotionRowUploader(object):
             cur_row = self.db.rows.get(row.key())
             self.db.update_row(cur_row, row.row)
 
-            if row.image and not _is_image_changed(cur_row, row.image, image_mode):
-                row.image = None
-
-            if row.icon and not _is_icon_changed(cur_row, row.icon):
-                row.icon = None
-
-            if row.file_columns:
-                if not _is_file_columns_changed(cur_row, row.file_columns):
-                    row.file_columns = {}
-
+            _merge_check(cur_row, image_mode, row)
         else:
             cur_row = self.db.add_row(row.row)
 
         return cur_row
 
 
+def _merge_check(cur_row, image_mode, row):
+    if row.image and not _is_image_changed(cur_row, row.image, image_mode):
+        row.image = None
+
+    if row.icon and not _is_icon_changed(cur_row, row.icon):
+        row.icon = None
+
+    if row.file_columns and not _is_file_columns_changed(cur_row, row.file_columns):
+        row.file_columns = {}
+
+
 def _set_row_image(
     db_row: CollectionRowBlock,
     image_mode: str,
-    image: Union[str, Path],
+    image: FileType,
     image_caption: Optional[str],
 ):
     if isinstance(image, Path):
@@ -92,7 +98,7 @@ def _set_row_image(
         db_row.set("properties.cover_meta", image_meta)
 
 
-def _set_row_icon(db_row: CollectionRowBlock, icon: Union[str, Path]):
+def _set_row_icon(db_row: CollectionRowBlock, icon: FileType):
     if isinstance(icon, Path):
         icon, icon_meta = upload_file(db_row, icon)
     else:
@@ -102,28 +108,36 @@ def _set_row_icon(db_row: CollectionRowBlock, icon: Union[str, Path]):
     db_row.set("properties.icon_meta", icon_meta)
 
 
-def _set_row_files(
-    db_row: CollectionRowBlock, file_columns: Dict[str, List[Union[str, Path]]]
-):
+def _set_row_files(db_row: CollectionRowBlock, file_columns: FileColumns):
     for column_name, files in file_columns.items():
         _set_column_files(db_row, column_name, files)
 
 
 def _set_column_files(
-    db_row: CollectionRowBlock, column_name: str, files: List[Union[str, Path]]
+    db_row: CollectionRowBlock, column_name: str, files: List[FileType]
 ):
-    column_id = next(c["id"] for c in db_row.schema if c["name"] == column_name)
+    column_id = db_row.collection.get_schema_property(column_name)["id"]
 
+    column_files_meta, column_files_urls = _process_column_files(db_row, files)
+
+    db_row.set(f"properties.{column_id}", column_files_urls)
+    db_row.set(f"properties.file_column_meta.{column_id}", column_files_meta)
+
+
+def _process_column_files(
+    db_row: CollectionRowBlock, files: List[FileType]
+) -> Tuple[List, List]:
     column_files_meta = []
     column_files_urls = []
 
-    for file in files:
-        if isinstance(file, Path):
-            file_name = file.name
-            file_url, file_meta = upload_file(db_row, file)
+    for file_or_url in files:
+        if isinstance(file_or_url, Path):
+            file_name = file_or_url.name
+            file_url, file_meta = upload_file(db_row, file_or_url)
         else:
-            file_url = file_name = file
-            file_meta = {"type": "url", "url": file}
+            file_name = file_or_url
+            file_url = file_or_url
+            file_meta = {"type": "url", "url": file_url}
 
         if column_files_urls:
             column_files_urls.append([","])
@@ -131,8 +145,7 @@ def _set_column_files(
 
         column_files_meta.append(file_meta)
 
-    db_row.set(f"properties.{column_id}", column_files_urls)
-    db_row.set(f"properties.file_column_meta.{column_id}", column_files_meta)
+    return column_files_meta, column_files_urls
 
 
 def _set_last_edited_time(row: CollectionRowBlock, time: datetime):
@@ -147,9 +160,7 @@ def _set_last_edited_time(row: CollectionRowBlock, time: datetime):
     )
 
 
-def _is_image_changed(
-    cur_row: CollectionRowBlock, image: Union[str, Path], image_mode: str
-):
+def _is_image_changed(cur_row: CollectionRowBlock, image: FileType, image_mode: str):
     if image_mode == "block":
         image_block = get_cover_image_block(cur_row)
         if not image_block:
@@ -164,16 +175,14 @@ def _is_image_changed(
     return is_meta_different(image, image_url, image_meta)
 
 
-def _is_icon_changed(cur_row: CollectionRowBlock, image: Union[str, Path]):
+def _is_icon_changed(cur_row: CollectionRowBlock, image: FileType):
     icon_meta = cur_row.get("properties.icon_meta")
     icon_url = cur_row.icon
 
     return is_meta_different(image, icon_url, icon_meta)
 
 
-def _is_file_columns_changed(
-    cur_row: CollectionRowBlock, file_columns: Dict[str, List[Union[str, Path]]]
-):
+def _is_file_columns_changed(cur_row: CollectionRowBlock, file_columns: FileColumns):
     for column_name, files in file_columns.items():
         if _is_file_column_changed(cur_row, column_name, files):
             return True
@@ -182,9 +191,9 @@ def _is_file_columns_changed(
 
 
 def _is_file_column_changed(
-    cur_row: CollectionRowBlock, column_name: str, files: List[Union[str, Path]]
+    cur_row: CollectionRowBlock, column_name: str, files: List[FileType]
 ):
-    column_id = next(c["id"] for c in cur_row.schema if c["name"] == column_name)
+    column_id = cur_row.collection.get_schema_property(column_name)["id"]
 
     files_meta = cur_row.get(f"properties.file_column_meta.{column_id}")
     files_url = getattr(cur_row, column_name)
@@ -192,11 +201,7 @@ def _is_file_column_changed(
     if not files_meta or not files_url:
         return True
 
-    if not (len(files_meta) == len(files_url) == len(files)):
+    if not (len(files_meta) == len(files_url) == len(files)):  # noqa: WPS508
         return True
 
-    for file, file_url, file_meta in zip(files, files_url, files_meta):
-        if is_meta_different(file, file_url, file_meta):
-            return True
-
-    return False
+    return any(starmap(is_meta_different, zip(files, files_url, files_meta)))
