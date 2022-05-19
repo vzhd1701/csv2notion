@@ -36,7 +36,7 @@ python = "^3.7"
 python-dateutil = "^2.8.2"
 tqdm = "^4.64.0"
 emoji = "^1.7.0"
-notion-vzhd1701-fork = "0.0.29"
+notion-vzhd1701-fork = "0.0.31"
 
 [tool.poetry.dev-dependencies]
 mdformat = "0.7.7"
@@ -75,6 +75,7 @@ exclude = [
 # W503 Line break occurred before a binary operator
 # WPS317 Indentation for parameters <- handled by black
 # WPS323 `%` string formatting, log format
+# WPS601 https://github.com/wemake-services/wemake-python-styleguide/issues/1431
 
 pycodestyle = ["+*", "-E203", "-W503"]
 flake8-commas = ["+*", "-C812"]
@@ -82,7 +83,7 @@ flake8-quotes = ["+*", "-Q000"]
 flake8-rst-docstrings = ["-*"]
 flake8-docstrings = ["-*"]
 flake8-darglint = ["-*"]
-wemake-python-styleguide = ["+*", "-WPS111", "-WPS226", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS437"]
+wemake-python-styleguide = ["+*", "-WPS111", "-WPS226", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS437", "-WPS601"]
 
 [tool.flakehell.exceptions."csv2notion/version.py"]
 # I like it this way
