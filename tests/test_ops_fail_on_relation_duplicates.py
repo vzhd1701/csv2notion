@@ -78,8 +78,8 @@ def test_fail_on_relation_duplicates_ok(tmp_path, db_maker):
     assert table_relation_header == {"c", "d", relation_column}
     assert len(table_relation_rows) == 1
 
-    assert getattr(table_main_rows[0], "a") == "a"
-    assert getattr(table_main_rows[0], "b") == []
-    assert getattr(table_relation_rows[0], "c") == "cc"
-    assert getattr(table_relation_rows[0], "d") == ""
-    assert getattr(table_relation_rows[0], slugify(relation_column)) == []
+    assert getattr(table_main_rows[0].columns, "a") == "a"
+    assert getattr(table_main_rows[0].columns, "b") == []
+    assert getattr(table_relation_rows[0].columns, "c") == "cc"
+    assert getattr(table_relation_rows[0].columns, "d") == ""
+    assert getattr(table_relation_rows[0].columns, slugify(relation_column)) == []

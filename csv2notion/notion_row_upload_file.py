@@ -5,10 +5,25 @@ from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import requests
-from notion.collection import CollectionRowBlock
+from notion.block import Block
+
+from csv2notion.utils_static import FileType
 
 
-def upload_file(block: CollectionRowBlock, file_path: Path) -> Tuple[str, dict]:
+def upload_filetype(parent: Block, filetype: FileType):
+    url = filetype
+
+    if isinstance(filetype, Path):
+        url, meta = upload_file(parent, filetype)
+    elif filetype is None:
+        meta = None
+    else:
+        meta = {"type": "url", "url": filetype}
+
+    return url, meta
+
+
+def upload_file(block: Block, file_path: Path) -> Tuple[str, dict]:
     file_mime = mimetypes.guess_type(str(file_path))[0]
 
     post_data = {

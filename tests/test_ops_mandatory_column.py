@@ -157,6 +157,6 @@ def test_mandatory_column_ok(tmp_path, db_maker):
 
     assert table_header == {"a", "b", "c"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "1"
-    assert getattr(table_rows[0], "b") == "2"
-    assert getattr(table_rows[0], "c") == "3"
+    assert getattr(table_rows[0].columns, "a") == "1"
+    assert getattr(table_rows[0].columns, "b") == "2"
+    assert getattr(table_rows[0].columns, "c") == "3"

@@ -75,11 +75,11 @@ def test_missing_relations_action_add(tmp_path, db_maker):
     assert table_relation_header == {"c", "d", relation_column}
     assert len(table_relation_rows) == 1
 
-    assert getattr(table_main_rows[0], "a") == "aa"
-    assert getattr(table_main_rows[0], "b") == [table_relation_rows[0]]
-    assert getattr(table_relation_rows[0], "c") == "bb"
-    assert getattr(table_relation_rows[0], "d") == ""
-    assert getattr(table_relation_rows[0], slugify(relation_column)) == [
+    assert getattr(table_main_rows[0].columns, "a") == "aa"
+    assert getattr(table_main_rows[0].columns, "b") == [table_relation_rows[0]]
+    assert getattr(table_relation_rows[0].columns, "c") == "bb"
+    assert getattr(table_relation_rows[0].columns, "d") == ""
+    assert getattr(table_relation_rows[0].columns, slugify(relation_column)) == [
         table_main_rows[0]
     ]
 
@@ -123,5 +123,5 @@ def test_missing_relations_action_ignore(tmp_path, db_maker):
     assert table_relation_header == {"c", "d", relation_column}
     assert len(table_relation_rows) == 0
 
-    assert getattr(table_main_rows[0], "a") == "aa"
-    assert getattr(table_main_rows[0], "b") == []
+    assert getattr(table_main_rows[0].columns, "a") == "aa"
+    assert getattr(table_main_rows[0].columns, "b") == []

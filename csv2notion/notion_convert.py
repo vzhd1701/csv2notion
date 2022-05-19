@@ -35,25 +35,29 @@ class NotionRowConverter(object):  # noqa:  WPS214
         return notion_rows
 
     def _convert_row(self, row: dict) -> NotionUploadRow:
-        image = self._map_image(row)
-        image_caption = self._map_image_caption(row)
-        icon = self._map_icon(row)
+        properties = self._map_properties(row)
+        columns = self._map_columns(row)
 
-        notion_row, file_columns, last_edited_time = self._map_columns(row)
+        return NotionUploadRow(columns=columns, properties=properties)
 
-        return NotionUploadRow(
-            row=notion_row,
-            image=image,
-            image_caption=image_caption,
-            icon=icon,
-            file_columns=file_columns,
-            last_edited_time=last_edited_time,
-        )
+    def _map_properties(self, row):
+        properties = {}
+
+        if self.rules["image_column_mode"] == "block":
+            properties["cover_block"] = self._map_image(row)
+            properties["cover_block_caption"] = self._map_image_caption(row)
+        else:
+            properties["cover"] = self._map_image(row)
+
+        properties["icon"] = self._map_icon(row)
+
+        properties["created_time"] = self._pop_column_type(row, "created_time")
+        properties["last_edited_time"] = self._pop_column_type(row, "last_edited_time")
+
+        return {k: v for k, v in properties.items() if v is not None}
 
     def _map_columns(self, row):
         notion_row = {}
-        file_columns = {}
-        last_edited_time = None
 
         for col_key, col_value in row.items():
             col_type = self.db.schema[col_key]["type"]
@@ -62,19 +66,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
             self._raise_if_mandatory_empty(col_key, notion_row[col_key])
 
-            # These cannot be None, server will set them if they are missing
-            if notion_row[col_key] is None:
-                if col_type in {"created_time", "last_edited_time"}:
-                    notion_row.pop(col_key)
-
-            # There can only be one last_edited_time, picking last column if multiple
-            if col_type == "last_edited_time":
-                last_edited_time = notion_row.pop(col_key, None)
-
-            if col_type == "file":
-                file_columns[col_key] = notion_row.pop(col_key)
-
-        return notion_row, file_columns, last_edited_time
+        return notion_row
 
     def _map_column(self, col_key, col_value, value_type):
         conversion_map = {
@@ -98,6 +90,27 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
             raise NotionError(e) from e
 
+    def _pop_column_type(self, row, col_type_to_pop):
+        """Some column types can't have multiple values (like created_time)
+        so we pop them out of the row leaving only the last non-empty one"""
+
+        last_col_value = None
+
+        for col_key, col_value in list(row.items()):
+            col_type = self.db.schema[col_key]["type"]
+
+            if col_type == col_type_to_pop:
+                result_value = self._map_column(col_key, col_value, col_type)
+
+                self._raise_if_mandatory_empty(col_key, result_value)
+
+                if result_value is not None:
+                    last_col_value = result_value
+
+                row.pop(col_key)
+
+        return last_col_value
+
     def _map_icon(self, row):
         icon = None
 
@@ -107,8 +120,6 @@ class NotionRowConverter(object):  # noqa:  WPS214
                 icon = map_icon(icon)
                 if isinstance(icon, Path):
                     icon = self._relative_path(icon)
-            else:
-                icon = None
 
             self._raise_if_mandatory_empty(self.rules["icon_column"], icon)
 
@@ -122,23 +133,24 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
     def _map_image(self, row):
         image = None
+
         if self.rules["image_column"]:
             image = row.get(self.rules["image_column"], "").strip()
             if image:
                 image = map_url_or_file(image)
                 if isinstance(image, Path):
                     image = self._relative_path(image)
-            else:
-                image = None
 
             self._raise_if_mandatory_empty(self.rules["image_column"], image)
 
             if not self.rules["image_column_keep"]:
                 row.pop(self.rules["image_column"], None)
+
         return image
 
     def _map_image_caption(self, row):
         image_caption = None
+
         if self.rules["image_caption_column"]:
             image_caption = row.get(self.rules["image_caption_column"], "").strip()
 
@@ -148,6 +160,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
             if not self.rules["image_caption_column_keep"]:
                 row.pop(self.rules["image_caption_column"], None)
+
         return image_caption
 
     def _map_file(self, s: str) -> list:

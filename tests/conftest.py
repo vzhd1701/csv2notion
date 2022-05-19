@@ -10,6 +10,7 @@ from pyfakefs.fake_filesystem_unittest import Patcher
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_db import make_new_db_from_csv
+from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.utils_rand_id import rand_id
 
 
@@ -104,8 +105,8 @@ class NotionDB(object):
         self.page.collection.set("schema", schema_raw)
 
     def add_row(self, row):
-        kwargs = {self.schema_dict[k]["slug"]: v for k, v in row.items()}
-        return self.page.collection.add_row(**kwargs)
+        new_row = self.page.collection.add_row(**row)
+        return CollectionRowBlockExtended(new_row._client, new_row._id)
 
     @property
     def header(self):
@@ -147,9 +148,11 @@ class NotionDB(object):
     @property
     def rows(self):
         key_column_slug = next(k["slug"] for k in self.schema if k["type"] == "title")
-        return sorted(
-            self.page.collection.get_rows(), key=lambda r: getattr(r, key_column_slug)
+        sorted_rows = sorted(
+            self.page.collection.get_rows(),
+            key=lambda r: getattr(r.columns, key_column_slug),
         )
+        return [CollectionRowBlockExtended(r._client, r._id) for r in sorted_rows]
 
     def refresh(self):
         self.page.refresh()

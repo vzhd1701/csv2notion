@@ -110,9 +110,9 @@ def test_new_page(tmp_path, caplog, db_maker):
 
     assert table_header == {"a", "b", "c"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "c") == "c"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "c") == "c"
 
 
 @pytest.mark.vcr()
@@ -136,9 +136,9 @@ def test_new_page_column_order(tmp_path, caplog, db_maker):
 
     assert table_view_header == ["c", "b", "a"]
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "c") == "c"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "c") == "c"
 
 
 @pytest.mark.vcr()
@@ -164,9 +164,9 @@ def test_existing_page(tmp_path, db_maker):
 
     assert table_header == {"a", "b", "c"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "aa"
-    assert getattr(table_rows[0], "b") == "bb"
-    assert getattr(table_rows[0], "c") == "cc"
+    assert getattr(table_rows[0].columns, "a") == "aa"
+    assert getattr(table_rows[0].columns, "b") == "bb"
+    assert getattr(table_rows[0].columns, "c") == "cc"
 
 
 def test_log_file(fs, mocker):

@@ -80,8 +80,8 @@ def test_image_column_empty(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 0
 
 
@@ -111,8 +111,8 @@ def test_image_column_skip_for_new_db(tmp_path, db_maker, caplog):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 0
 
 
@@ -145,8 +145,8 @@ def test_image_column_ok(tmp_path, smallest_gif, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 1
     assert image.type == "image"
     assert test_image.name in image.display_source
@@ -180,8 +180,8 @@ def test_image_column_url_ok(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 1
     assert image.type == "image"
     assert image.display_source == test_image_url
@@ -217,8 +217,8 @@ def test_image_column_cover_mode_ok(tmp_path, smallest_gif, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 0
     assert test_image.name in table_rows[0].cover
 
@@ -252,8 +252,8 @@ def test_image_column_cover_mode_url_ok(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 0
     assert table_rows[0].cover == test_image_url
 
@@ -312,9 +312,9 @@ def test_image_column_keep_ok(tmp_path, db_maker):
 
     assert table_header == {"a", "b", "image url"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "image url") == test_image_url
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "image url") == test_image_url
     assert len(table_rows[0].children) == 1
     assert image.type == "image"
     assert image.display_source == test_image_url
@@ -347,7 +347,7 @@ def test_image_column_keep_ok_for_new_db(tmp_path, db_maker, caplog):
 
     assert table_header == {"a", "b", "image file"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "image file") == ""
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "image file") == ""
     assert len(table_rows[0].children) == 0

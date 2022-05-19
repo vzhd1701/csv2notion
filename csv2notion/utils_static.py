@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Union
+
 ALLOWED_TYPES = frozenset(
     (
         "checkbox",
@@ -20,3 +23,5 @@ ALLOWED_TYPES = frozenset(
 )
 
 UNSETTABLE_TYPES = frozenset(("created_by", "last_edited_by", "rollup", "formula"))
+
+FileType = Union[str, Path]

@@ -62,8 +62,8 @@ def test_image_caption_column_empty(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 1
 
     assert image.caption == ""
@@ -95,8 +95,8 @@ def test_image_caption_column_skip_for_new_db(tmp_path, db_maker, caplog):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 0
 
 
@@ -130,8 +130,8 @@ def test_image_caption_column_ok(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
     assert len(table_rows[0].children) == 1
 
     assert image.caption == "test"
@@ -143,7 +143,7 @@ def test_image_caption_column_overwrite(tmp_path, db_maker, caplog):
     test_image_url = "https://via.placeholder.com/100"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b,image url,image caption\na,b,{test_image_url},test1\n")
+    test_file.write_text(f"a,image url,image caption\na,{test_image_url},test1\n")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
         cli(
@@ -161,7 +161,7 @@ def test_image_caption_column_overwrite(tmp_path, db_maker, caplog):
     url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
 
     test_db = db_maker.from_url(url)
-    test_file.write_text(f"a,b,image url,image caption\na,b,{test_image_url},test2\n")
+    test_file.write_text(f"a,image url,image caption\na,{test_image_url},test2\n")
 
     cli(
         [
@@ -182,10 +182,9 @@ def test_image_caption_column_overwrite(tmp_path, db_maker, caplog):
     table_rows = test_db.rows
     image = table_rows[0].children[0]
 
-    assert table_header == {"a", "b"}
+    assert table_header == {"a"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
     assert len(table_rows[0].children) == 1
 
     assert image.caption == "test2"
@@ -222,9 +221,9 @@ def test_image_caption_column_keep(tmp_path, db_maker):
 
     assert table_header == {"a", "b", "image caption"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "image caption") == "test"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "image caption") == "test"
     assert len(table_rows[0].children) == 1
 
     assert image.caption == "test"
@@ -259,7 +258,7 @@ def test_image_caption_column_keep_for_new_db(tmp_path, db_maker, caplog):
 
     assert table_header == {"a", "b", "image caption"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "image caption") == ""
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "image caption") == ""
     assert len(table_rows[0].children) == 0

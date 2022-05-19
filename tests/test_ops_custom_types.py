@@ -1,13 +1,11 @@
 import datetime
 import logging
-import os
 import re
 
 import pytest
-from dateutil.tz import tz
 
 from csv2notion.cli import cli
-from csv2notion.utils_exceptions import CriticalError, NotionError
+from csv2notion.utils_exceptions import CriticalError
 
 
 def test_custom_types_bad():
@@ -79,12 +77,12 @@ def test_custom_types_checkbox(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 3
 
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == True
-    assert getattr(table_rows[1], "a") == "b"
-    assert getattr(table_rows[1], "b") == False
-    assert getattr(table_rows[2], "a") == "c"
-    assert getattr(table_rows[2], "b") == False
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == True
+    assert getattr(table_rows[1].columns, "a") == "b"
+    assert getattr(table_rows[1].columns, "b") == False
+    assert getattr(table_rows[2].columns, "a") == "c"
+    assert getattr(table_rows[2].columns, "b") == False
 
 
 @pytest.mark.vcr()
@@ -117,10 +115,10 @@ def test_custom_types_date(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 2
 
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b").start == datetime.datetime(2001, 12, 1)
-    assert getattr(table_rows[1], "a") == "b"
-    assert getattr(table_rows[1], "b") is None
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b").start == datetime.datetime(2001, 12, 1)
+    assert getattr(table_rows[1].columns, "a") == "b"
+    assert getattr(table_rows[1].columns, "b") is None
 
 
 @pytest.mark.vcr()
@@ -156,11 +154,11 @@ def test_custom_types_textlike(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b", "c", "d", "e"}
     assert len(table_rows) == 1
 
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == "b1"
-    assert getattr(table_rows[0], "c") == "c1"
-    assert getattr(table_rows[0], "d") == "d1"
-    assert getattr(table_rows[0], "e") == "e1"
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == "b1"
+    assert getattr(table_rows[0].columns, "c") == "c1"
+    assert getattr(table_rows[0].columns, "d") == "d1"
+    assert getattr(table_rows[0].columns, "e") == "e1"
 
 
 @pytest.mark.vcr()
@@ -196,8 +194,8 @@ def test_custom_types_multi_select(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
 
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == ["b1", "b2", "b3"]
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == ["b1", "b2", "b3"]
 
 
 @pytest.mark.vcr()
@@ -233,10 +231,10 @@ def test_custom_types_select(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 2
 
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == "b1"
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == "b2"
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == "b1"
+    assert getattr(table_rows[1].columns, "a") == "a2"
+    assert getattr(table_rows[1].columns, "b") == "b2"
 
 
 @pytest.mark.vcr()
@@ -269,425 +267,9 @@ def test_custom_types_number(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 3
 
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == 100
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == 1.25
-    assert getattr(table_rows[2], "a") == "a3"
-    assert getattr(table_rows[2], "b") is None
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_created_time(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text("a,b\na,2001-12-01\nb,bad")
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "created_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-    test_client = test_db.page._client
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    cur_timezone = tz.gettz(
-        test_client.get_record_data("user_settings", test_client.current_user.id)[
-            "settings"
-        ]["time_zone"]
-    )
-    test_time = datetime.datetime(2001, 12, 1).replace(tzinfo=cur_timezone)
-    test_time = test_time.astimezone(tz.tzutc())
-    test_time = test_time.replace(tzinfo=None)
-
-    assert test_db.schema_dict["b"]["type"] == "created_time"
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == test_time
-    assert getattr(table_rows[1], "a") == "b"
-    # this one will be set to now, but it's generated by server so we can't check it
-    assert isinstance(getattr(table_rows[1], "b"), datetime.datetime)
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_created_time_multi(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(
-        "a,b,c\na,2001-11-01,2001-12-01\nb,2001-12-01,bad\nc,bad,2001-12-01"
-    )
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "created_time,created_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-    test_client = test_db.page._client
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    cur_timezone = tz.gettz(
-        test_client.get_record_data("user_settings", test_client.current_user.id)[
-            "settings"
-        ]["time_zone"]
-    )
-    test_time = datetime.datetime(2001, 12, 1).replace(tzinfo=cur_timezone)
-    test_time = test_time.astimezone(tz.tzutc())
-    test_time = test_time.replace(tzinfo=None)
-
-    assert test_db.schema_dict["b"]["type"] == "created_time"
-    assert test_db.schema_dict["c"]["type"] == "created_time"
-
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 3
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == test_time
-    assert getattr(table_rows[0], "c") == test_time
-    assert getattr(table_rows[1], "a") == "b"
-    assert getattr(table_rows[1], "b") == test_time
-    assert getattr(table_rows[1], "c") == test_time
-    assert getattr(table_rows[2], "a") == "c"
-    assert getattr(table_rows[2], "b") == test_time
-    assert getattr(table_rows[2], "c") == test_time
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_last_edited_time(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text("a,b\na,2001-12-01\nb,bad")
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "last_edited_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-    test_client = test_db.page._client
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    cur_timezone = tz.gettz(
-        test_client.get_record_data("user_settings", test_client.current_user.id)[
-            "settings"
-        ]["time_zone"]
-    )
-    test_time = datetime.datetime(2001, 12, 1).replace(tzinfo=cur_timezone)
-    test_time = test_time.astimezone(tz.tzutc())
-    test_time = test_time.replace(tzinfo=None)
-
-    assert test_db.schema_dict["b"]["type"] == "last_edited_time"
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == test_time
-    assert getattr(table_rows[1], "a") == "b"
-    # this one will be set to now, but it's generated by server so we can't check it
-    assert isinstance(getattr(table_rows[1], "b"), datetime.datetime)
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_last_edited_time_multi(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(
-        "a,b,c\na,2001-11-01,2001-12-01\nb,2001-12-01,bad\nc,bad,2001-12-01"
-    )
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "last_edited_time,last_edited_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-    test_client = test_db.page._client
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    cur_timezone = tz.gettz(
-        test_client.get_record_data("user_settings", test_client.current_user.id)[
-            "settings"
-        ]["time_zone"]
-    )
-    test_time = datetime.datetime(2001, 12, 1).replace(tzinfo=cur_timezone)
-    test_time = test_time.astimezone(tz.tzutc())
-    test_time = test_time.replace(tzinfo=None)
-
-    assert test_db.schema_dict["b"]["type"] == "last_edited_time"
-    assert test_db.schema_dict["c"]["type"] == "last_edited_time"
-
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 3
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == test_time
-    assert getattr(table_rows[0], "c") == test_time
-    assert getattr(table_rows[1], "a") == "b"
-    assert getattr(table_rows[1], "b") == test_time
-    assert getattr(table_rows[1], "c") == test_time
-    assert getattr(table_rows[2], "a") == "c"
-    assert getattr(table_rows[2], "b") == test_time
-    assert getattr(table_rows[2], "c") == test_time
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_empty(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text("a,b\na,")
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    assert test_db.schema_dict["b"]["type"] == "file"
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == []
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_banned(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text("a,b\na,banned.exe")
-
-    banned_file = tmp_path / "banned.exe"
-    banned_file.touch()
-
-    with pytest.raises(NotionError) as e:
-        with caplog.at_level(logging.INFO, logger="csv2notion"):
-            cli(
-                [
-                    "--token",
-                    db_maker.token,
-                    "--custom-types",
-                    "file",
-                    str(test_file),
-                ]
-            )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-    db_maker.from_url(url)
-
-    assert "File extension '*.exe' is not allowed to upload on Notion." in str(e.value)
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_embed(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(
-        "a,b\n"
-        "a1,https://via.placeholder.com/100\n"
-        'a2,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
-    )
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    assert test_db.schema_dict["b"]["type"] == "file"
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
-
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == ["https://via.placeholder.com/100"]
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == [
-        "https://via.placeholder.com/100",
-        "https://via.placeholder.com/200",
-    ]
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_duplicate(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(
-        'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/100"'
-    )
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    assert test_db.schema_dict["b"]["type"] == "file"
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == ["https://via.placeholder.com/100"]
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_multi_column(tmp_path, caplog, db_maker):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(
-        "a,b,c\na,https://via.placeholder.com/100,https://via.placeholder.com/200"
-    )
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file,file",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    assert test_db.schema_dict["b"]["type"] == "file"
-    assert test_db.schema_dict["c"]["type"] == "file"
-
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == ["https://via.placeholder.com/100"]
-    assert getattr(table_rows[0], "c") == ["https://via.placeholder.com/200"]
-
-
-@pytest.mark.vcr()
-@pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_upload(tmp_path, caplog, db_maker, smallest_gif):
-    test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text("a,b\na,test_image.gif")
-
-    test_image = tmp_path / "test_image.gif"
-    test_image.write_bytes(smallest_gif)
-
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
-
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    assert test_db.schema_dict["b"]["type"] == "file"
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0], "a") == "a"
-    assert "test_image.gif" in getattr(table_rows[0], "b")[0]
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == 100
+    assert getattr(table_rows[1].columns, "a") == "a2"
+    assert getattr(table_rows[1].columns, "b") == 1.25
+    assert getattr(table_rows[2].columns, "a") == "a3"
+    assert getattr(table_rows[2].columns, "b") is None

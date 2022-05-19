@@ -48,8 +48,8 @@ def test_fail_on_duplicate_csv_columns_ok(tmp_path, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
 
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
 
 
 @pytest.mark.vcr()
@@ -76,5 +76,5 @@ def test_fail_on_duplicate_csv_columns_ignore(tmp_path, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
 
-    assert getattr(table_rows[0], "a") == "a2"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a2"
+    assert getattr(table_rows[0].columns, "b") == "b"

@@ -67,6 +67,6 @@ def test_fail_on_inaccessible_relations_ignore(tmp_path, db_maker, caplog):
     assert table_main_header == {"a", "b"}
     assert len(table_main_rows) == 1
 
-    assert getattr(table_main_rows[0], "a") == "a"
-    assert getattr(table_main_rows[0], "b") == []
+    assert getattr(table_main_rows[0].columns, "a") == "a"
+    assert getattr(table_main_rows[0].columns, "b") == []
     assert "Columns with inaccessible relations: ['b']" in caplog.text

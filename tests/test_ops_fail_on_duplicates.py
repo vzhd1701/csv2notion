@@ -55,10 +55,10 @@ def test_fail_on_duplicates_csv_ok(tmp_path, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 2
 
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == "b1"
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == "b2"
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == "b1"
+    assert getattr(table_rows[1].columns, "a") == "a2"
+    assert getattr(table_rows[1].columns, "b") == "b2"
 
 
 @pytest.mark.vcr()
@@ -116,9 +116,9 @@ def test_fail_on_duplicates_db_ok(tmp_path, db_maker):
     assert table_header == {"a", "b"}
     assert len(table_rows) == 3
 
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == "b1"
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == "b2"
-    assert getattr(table_rows[2], "a") == "a3"
-    assert getattr(table_rows[2], "b") == "b3"
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == "b1"
+    assert getattr(table_rows[1].columns, "a") == "a2"
+    assert getattr(table_rows[1].columns, "b") == "b2"
+    assert getattr(table_rows[2].columns, "a") == "a3"
+    assert getattr(table_rows[2].columns, "b") == "b3"

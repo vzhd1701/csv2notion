@@ -69,11 +69,11 @@ def test_fail_on_unsupported_columns_ok(tmp_path, caplog, db_maker):
     assert table_header == {"a", "b", "c", "d", "e"}
     assert len(table_rows) == 1
 
-    assert getattr(table_rows[0], "a") == "a"
-    assert isinstance(getattr(table_rows[0], "b"), User)
-    assert isinstance(getattr(table_rows[0], "c"), User)
-    assert getattr(table_rows[0], "d") is None
-    assert getattr(table_rows[0], "e") is None
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert isinstance(getattr(table_rows[0].columns, "b"), User)
+    assert isinstance(getattr(table_rows[0].columns, "c"), User)
+    assert getattr(table_rows[0].columns, "d") is None
+    assert getattr(table_rows[0].columns, "e") is None
     assert (
         "Cannot set value to these columns"
         " due to unsupported type: ['b', 'c', 'd', 'e']" in caplog.text

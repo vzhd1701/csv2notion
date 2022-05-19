@@ -40,10 +40,11 @@ def convert_csv_to_notion_rows(
         "default_icon": args.default_icon,
         "image_column": args.image_column,
         "image_column_keep": args.image_column_keep,
-        "icon_column": args.icon_column,
-        "icon_column_keep": args.icon_column_keep,
+        "image_column_mode": args.image_column_mode,
         "image_caption_column": args.image_caption_column,
         "image_caption_column_keep": args.image_caption_column_keep,
+        "icon_column": args.icon_column,
+        "icon_column_keep": args.icon_column_keep,
         "mandatory_columns": args.mandatory_column,
         "is_merge": args.merge,
         "merge_only_columns": args.merge_only_column,
@@ -66,7 +67,6 @@ def upload_rows(notion_rows: List[NotionUploadRow], args: Namespace) -> None:
     worker = partial(
         ThreadRowUploader(args.token, args.url).worker,
         is_merge=args.merge,
-        image_mode=args.image_column_mode,
     )
 
     tdqm_iter = tqdm(

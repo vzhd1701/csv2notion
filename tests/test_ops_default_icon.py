@@ -47,8 +47,8 @@ def test_default_icon_file(tmp_path, smallest_gif, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
 
     assert test_image.name in table_rows[0].icon
 
@@ -80,8 +80,8 @@ def test_default_icon_url(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
 
     assert table_rows[0].icon == test_icon_url
 
@@ -113,8 +113,8 @@ def test_default_icon_emoji(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
 
     assert table_rows[0].icon == test_icon_emoji
 
@@ -150,10 +150,10 @@ def test_default_icon_column_priority(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 2
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == "b1"
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == "b2"
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == "b1"
+    assert getattr(table_rows[1].columns, "a") == "a2"
+    assert getattr(table_rows[1].columns, "b") == "b2"
 
     assert table_rows[0].icon == test_icon_url_column
     assert table_rows[1].icon == test_icon_url_default
@@ -190,10 +190,10 @@ def test_default_icon_merge_only(tmp_path, db_maker):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 2
-    assert getattr(table_rows[0], "a") == "a1"
-    assert getattr(table_rows[0], "b") == ""
-    assert getattr(table_rows[1], "a") == "a2"
-    assert getattr(table_rows[1], "b") == ""
+    assert getattr(table_rows[0].columns, "a") == "a1"
+    assert getattr(table_rows[0].columns, "b") == ""
+    assert getattr(table_rows[1].columns, "a") == "a2"
+    assert getattr(table_rows[1].columns, "b") == ""
 
     assert table_rows[0].icon == test_icon_emoji_default
     assert table_rows[1].icon == test_icon_emoji_default

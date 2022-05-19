@@ -6,6 +6,7 @@ from notion.collection import Collection
 from notion.utils import InvalidNotionIdentifier
 
 from csv2notion.csv_data import CSVData
+from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.utils_exceptions import NotionError
 from csv2notion.utils_rand_id import rand_id_list, rand_id_unique
 
@@ -69,21 +70,10 @@ class NotionDB(object):  # noqa: WPS214
         relation = self.relation(relation_column)
         relation["rows"][key_value] = relation["collection"].add_row(title=key_value)
 
-    def add_row(self, row_data: dict):
-        kwargs = self._slugify_row(row_data)
-
-        return self.collection.add_row(**kwargs)
-
-    def update_row(self, row, row_data: dict):
-        kwargs = self._slugify_row(row_data)
-
-        with self.client.as_atomic_transaction():
-            for k, v in kwargs.items():
-                setattr(row, k, v)
-
-    def _slugify_row(self, row_data: dict):
-        row_items = row_data.items()
-        return {self.schema[k]["slug"]: v for k, v in row_items}
+    def add_row(self, properties=None, columns=None):
+        return self.collection.add_row_block(
+            row_class=CollectionRowBlockExtended, properties=properties, columns=columns
+        )
 
     def _validate_collection_duplicates(self, collection_id: str) -> bool:
         collection = self._collection(collection_id)
@@ -95,7 +85,8 @@ class NotionDB(object):  # noqa: WPS214
         collection = self._collection(collection_id)
         rows = {}
         for row in sorted(collection.get_rows(), key=lambda r: r.title):
-            rows.setdefault(row.title, row)
+            row_conv = CollectionRowBlockExtended(row._client, row._id)
+            rows.setdefault(row.title, row_conv)
         return rows
 
     def _collection_name(self, collection_id: str) -> str:

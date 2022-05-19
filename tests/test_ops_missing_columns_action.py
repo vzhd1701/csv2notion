@@ -56,8 +56,8 @@ def test_missing_columns_action_ignore(tmp_path, db_maker, caplog):
 
     assert table_header == {"a", "b"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "1"
-    assert getattr(table_rows[0], "b") == "2"
+    assert getattr(table_rows[0].columns, "a") == "1"
+    assert getattr(table_rows[0].columns, "b") == "2"
     assert "CSV columns missing from Notion DB: {'c'}" in caplog.text
 
 
@@ -89,7 +89,7 @@ def test_missing_columns_action_add(tmp_path, db_maker, caplog):
 
     assert table_header == {"a", "b", "c"}
     assert len(table_rows) == 1
-    assert getattr(table_rows[0], "a") == "a"
-    assert getattr(table_rows[0], "b") == "b"
-    assert getattr(table_rows[0], "c") == "c"
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "b") == "b"
+    assert getattr(table_rows[0].columns, "c") == "c"
     assert "Adding missing columns to the DB: {'c'}" in caplog.text
