@@ -60,6 +60,8 @@ def setup_logging(is_verbose: bool = False, log_file: Optional[Path] = None) -> 
         )
         logging.getLogger("csv2notion").addHandler(file_handler)
 
+    logging.getLogger("notion").setLevel(logging.WARNING)
+
 
 def abort(*args):  # pragma: no cover
     print("\nAbort")  # noqa: WPS421
