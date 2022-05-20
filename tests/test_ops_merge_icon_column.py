@@ -26,28 +26,23 @@ def test_merge_icon_column_with_content(tmp_path, db_maker):
     test_file.write_text(f"a,b,icon url\na,b,{test_icon_url2}\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--icon-column",
-            "icon url",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--icon-column",
+        "icon url",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
-    assert table_rows[0].icon == test_icon_url2
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
+    assert test_db.rows[0].icon == test_icon_url2
 
 
 @pytest.mark.vcr()
@@ -75,29 +70,24 @@ def test_merge_icon_column_with_content_no_reupload(tmp_path, db_maker, smallest
     test_file.write_text(f"a,b,icon file\na,b,{test_icon2}\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--icon-column",
-            "icon file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--icon-column",
+        "icon file",
+        str(test_file),
     )
-
-    table_rows = test_db.rows
-    table_header = test_db.header
 
     icon_meta_after = test_db.rows[0].get("properties.icon_meta", force_refresh=True)
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
     assert icon_meta_pre == icon_meta_after
 
 
@@ -123,28 +113,23 @@ def test_merge_icon_column_url_to_file(tmp_path, db_maker, smallest_gif):
     test_file.write_text(f"a,b,icon file\na,b,{test_icon_file}\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--icon-column",
-            "icon file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--icon-column",
+        "icon file",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
-    assert test_icon_file.name in table_rows[0].icon
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
+    assert test_icon_file.name in test_db.rows[0].icon
 
 
 @pytest.mark.vcr()
@@ -174,24 +159,19 @@ def test_merge_icon_column_with_content_reupload_manually_replaced(
     test_file.write_text(f"a,icon file\na,{test_icon2}\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--icon-column",
-            "icon file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--icon-column",
+        "icon file",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert len(table_rows[0].children) == 0
-    assert test_icon2.name in table_rows[0].icon
+    assert test_db.rows[0].columns["a"] == "a"
+    assert len(test_db.rows[0].children) == 0
+    assert test_icon2.name in test_db.rows[0].icon

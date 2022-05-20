@@ -12,12 +12,10 @@ def test_fail_on_duplicate_csv_columns(tmp_path):
 
     with pytest.raises(CriticalError) as e:
         cli(
-            [
-                "--token",
-                "fake",
-                "--fail-on-duplicate-csv-columns",
-                str(test_file),
-            ]
+            "--token",
+            "fake",
+            "--fail-on-duplicate-csv-columns",
+            str(test_file),
         )
 
     assert "Duplicate columns found in CSV" in str(e.value)
@@ -32,24 +30,19 @@ def test_fail_on_duplicate_csv_columns_ok(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--fail-on-duplicate-csv-columns",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--fail-on-duplicate-csv-columns",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
 
 
 @pytest.mark.vcr()
@@ -61,20 +54,15 @@ def test_fail_on_duplicate_csv_columns_ignore(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a2"
-    assert getattr(table_rows[0].columns, "b") == "b"
+    assert test_db.rows[0].columns["a"] == "a2"
+    assert test_db.rows[0].columns["b"] == "b"

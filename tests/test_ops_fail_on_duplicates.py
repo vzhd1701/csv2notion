@@ -16,14 +16,12 @@ def test_fail_on_duplicates_csv(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--fail-on-duplicates",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--fail-on-duplicates",
+            str(test_file),
         )
 
     assert "Duplicate values found in first column in CSV" in str(e.value)
@@ -38,27 +36,22 @@ def test_fail_on_duplicates_csv_ok(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--fail-on-duplicates",
-            "--max-threads=1",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--fail-on-duplicates",
+        "--max-threads=1",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 2
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
-
-    assert getattr(table_rows[0].columns, "a") == "a1"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert getattr(table_rows[1].columns, "a") == "a2"
-    assert getattr(table_rows[1].columns, "b") == "b2"
+    assert test_db.rows[0].columns["a"] == "a1"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert test_db.rows[1].columns["a"] == "a2"
+    assert test_db.rows[1].columns["b"] == "b2"
 
 
 @pytest.mark.vcr()
@@ -74,14 +67,12 @@ def test_fail_on_duplicates_db(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--fail-on-duplicates",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--fail-on-duplicates",
+            str(test_file),
         )
 
     assert "Duplicate values found in DB key column" in str(e.value)
@@ -99,26 +90,21 @@ def test_fail_on_duplicates_db_ok(tmp_path, db_maker):
     test_db.add_row({"a": "a2", "b": "b2"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--fail-on-duplicates",
-            "--max-threads=1",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--fail-on-duplicates",
+        "--max-threads=1",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 3
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 3
-
-    assert getattr(table_rows[0].columns, "a") == "a1"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert getattr(table_rows[1].columns, "a") == "a2"
-    assert getattr(table_rows[1].columns, "b") == "b2"
-    assert getattr(table_rows[2].columns, "a") == "a3"
-    assert getattr(table_rows[2].columns, "b") == "b3"
+    assert test_db.rows[0].columns["a"] == "a1"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert test_db.rows[1].columns["a"] == "a2"
+    assert test_db.rows[1].columns["b"] == "b2"
+    assert test_db.rows[2].columns["a"] == "a3"
+    assert test_db.rows[2].columns["b"] == "b3"

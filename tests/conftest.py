@@ -154,7 +154,7 @@ class NotionDB(object):
         key_column_slug = next(k["slug"] for k in self.schema if k["type"] == "title")
         sorted_rows = sorted(
             self.page.collection.get_rows(),
-            key=lambda r: getattr(r.columns, key_column_slug),
+            key=lambda r: r.columns[key_column_slug],
         )
         return [CollectionRowBlockExtended(r._client, r._id) for r in sorted_rows]
 
@@ -200,7 +200,7 @@ class NotionDBMaker(object):
 
     def from_cli(self, *args: str) -> NotionDB:
         with LogCapture("csv2notion", level=logging.INFO) as log:
-            cli(list(args))
+            cli(*args)
 
         url = re.search(r"New database URL: (.*)$", str(log), re.M)[1]
 
@@ -209,7 +209,7 @@ class NotionDBMaker(object):
     def from_raising_cli(self, *args: str) -> ShouldRaise:
         with ShouldRaise() as e:
             with LogCapture("csv2notion", level=logging.INFO) as log:
-                cli(list(args))
+                cli(*args)
 
         url = re.search(r"New database URL: (.*)$", str(log), re.M)[1]
 

@@ -7,13 +7,11 @@ from csv2notion.utils_exceptions import CriticalError
 def test_default_icon_file_not_found():
     with pytest.raises(CriticalError) as e:
         cli(
-            [
-                "--token",
-                "fake",
-                "--default-icon",
-                "fake_icon.jpg",
-                "fake",
-            ]
+            "--token",
+            "fake",
+            "--default-icon",
+            "fake_icon.jpg",
+            "fake",
         )
 
     assert "File not found: fake_icon.jpg" in str(e.value)
@@ -31,26 +29,21 @@ def test_default_icon_file(tmp_path, smallest_gif, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--default-icon",
-            str(test_image.resolve()),
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--default-icon",
+        str(test_image.resolve()),
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-
-    assert test_image.name in table_rows[0].icon
+    assert test_image.name in test_db.rows[0].icon
 
 
 @pytest.mark.vcr()
@@ -64,26 +57,21 @@ def test_default_icon_url(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--default-icon",
-            test_icon_url,
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--default-icon",
+        test_icon_url,
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-
-    assert table_rows[0].icon == test_icon_url
+    assert test_db.rows[0].icon == test_icon_url
 
 
 @pytest.mark.vcr()
@@ -97,26 +85,21 @@ def test_default_icon_emoji(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--default-icon",
-            test_icon_emoji,
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--default-icon",
+        test_icon_emoji,
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-
-    assert table_rows[0].icon == test_icon_emoji
+    assert test_db.rows[0].icon == test_icon_emoji
 
 
 @pytest.mark.vcr()
@@ -131,32 +114,27 @@ def test_default_icon_column_priority(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--icon-column",
-            "icon url",
-            "--default-icon",
-            test_icon_url_default,
-            "--max-threads=1",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--icon-column",
+        "icon url",
+        "--default-icon",
+        test_icon_url_default,
+        "--max-threads=1",
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 2
+    assert test_db.rows[0].columns["a"] == "a1"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert test_db.rows[1].columns["a"] == "a2"
+    assert test_db.rows[1].columns["b"] == "b2"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
-    assert getattr(table_rows[0].columns, "a") == "a1"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert getattr(table_rows[1].columns, "a") == "a2"
-    assert getattr(table_rows[1].columns, "b") == "b2"
-
-    assert table_rows[0].icon == test_icon_url_column
-    assert table_rows[1].icon == test_icon_url_default
+    assert test_db.rows[0].icon == test_icon_url_column
+    assert test_db.rows[1].icon == test_icon_url_default
 
 
 @pytest.mark.vcr()
@@ -170,30 +148,25 @@ def test_default_icon_merge_only(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--default-icon",
-            test_icon_emoji_default,
-            "--merge",
-            "--merge-only-column",
-            "a",
-            "--max-threads=1",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--default-icon",
+        test_icon_emoji_default,
+        "--merge",
+        "--merge-only-column",
+        "a",
+        "--max-threads=1",
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 2
+    assert test_db.rows[0].columns["a"] == "a1"
+    assert test_db.rows[0].columns["b"] == ""
+    assert test_db.rows[1].columns["a"] == "a2"
+    assert test_db.rows[1].columns["b"] == ""
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
-    assert getattr(table_rows[0].columns, "a") == "a1"
-    assert getattr(table_rows[0].columns, "b") == ""
-    assert getattr(table_rows[1].columns, "a") == "a2"
-    assert getattr(table_rows[1].columns, "b") == ""
-
-    assert table_rows[0].icon == test_icon_emoji_default
-    assert table_rows[1].icon == test_icon_emoji_default
+    assert test_db.rows[0].icon == test_icon_emoji_default
+    assert test_db.rows[1].icon == test_icon_emoji_default

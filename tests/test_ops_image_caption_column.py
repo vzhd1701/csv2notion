@@ -17,15 +17,13 @@ def test_image_caption_column_missing(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--image-caption-column",
-                "image caption",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--image-caption-column",
+            "image caption",
+            str(test_file),
         )
 
     assert "Image caption column 'image caption' not found in csv file" in str(e.value)
@@ -42,29 +40,24 @@ def test_image_caption_column_empty(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--image-column",
-            "image url",
-            "--image-caption-column",
-            "image caption",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--image-column",
+        "image url",
+        "--image-caption-column",
+        "image caption",
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
+    image = test_db.rows[0].children[0]
 
-    image = table_rows[0].children[0]
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 1
 
     assert image.caption == ""
 
@@ -83,14 +76,11 @@ def test_image_caption_column_skip_for_new_db(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
-
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
 
 
 @pytest.mark.vcr()
@@ -104,28 +94,24 @@ def test_image_caption_column_ok(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--image-column",
-            "image url",
-            "--image-caption-column",
-            "image caption",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--image-column",
+        "image url",
+        "--image-caption-column",
+        "image caption",
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 1
 
     assert image.caption == "test"
 
@@ -151,28 +137,24 @@ def test_image_caption_column_overwrite(tmp_path, db_maker):
     test_file.write_text(f"a,image url,image caption\na,{test_image_url},test2\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--image-column",
-            "image url",
-            "--image-caption-column",
-            "image caption",
-            "--merge",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--image-column",
+        "image url",
+        "--image-caption-column",
+        "image caption",
+        "--merge",
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert len(table_rows[0].children) == 1
+    assert test_db.header == {"a"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert len(test_db.rows[0].children) == 1
 
     assert image.caption == "test2"
 
@@ -188,30 +170,26 @@ def test_image_caption_column_keep(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b,image caption")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--image-column",
-            "image url",
-            "--image-caption-column",
-            "image caption",
-            "--image-caption-column-keep",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--image-column",
+        "image url",
+        "--image-caption-column",
+        "image caption",
+        "--image-caption-column-keep",
+        str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a", "b", "image caption"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert getattr(table_rows[0].columns, "image caption") == "test"
-    assert len(table_rows[0].children) == 1
+    assert test_db.header == {"a", "b", "image caption"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert test_db.rows[0].columns["image caption"] == "test"
+    assert len(test_db.rows[0].children) == 1
 
     assert image.caption == "test"
 
@@ -233,12 +211,9 @@ def test_image_caption_column_keep_for_new_db(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_header = test_db.header
-    table_rows = test_db.rows
-
-    assert table_header == {"a", "b", "image caption"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert getattr(table_rows[0].columns, "image caption") == ""
-    assert len(table_rows[0].children) == 0
+    assert test_db.header == {"a", "b", "image caption"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert test_db.rows[0].columns["image caption"] == ""
+    assert len(test_db.rows[0].children) == 0

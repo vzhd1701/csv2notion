@@ -17,14 +17,12 @@ def test_merge_key_missing(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--merge",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            str(test_file),
         )
 
     assert f"Key column 'a' does not exist in Notion DB" in str(e.value)
@@ -40,14 +38,12 @@ def test_merge_key_invalid(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--merge",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            str(test_file),
         )
 
     assert f"Notion DB column 'a' is not a key column" in str(e.value)
@@ -64,25 +60,20 @@ def test_merge_ok(tmp_path, db_maker):
     test_db.add_row({"a": "a", "b": "b1", "c": "c1"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b2"
-    assert getattr(table_rows[0].columns, "c") == "c1"
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b2"
+    assert test_db.rows[0].columns["c"] == "c1"
 
 
 @pytest.mark.vcr()
@@ -96,25 +87,20 @@ def test_merge_bom_csv_ok(tmp_path, db_maker):
     test_db.add_row({"a": "a", "b": "b1", "c": "c1"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b2"
-    assert getattr(table_rows[0].columns, "c") == "c1"
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b2"
+    assert test_db.rows[0].columns["c"] == "c1"
 
 
 @pytest.mark.vcr()
@@ -127,16 +113,14 @@ def test_merge_only_column_missing(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--merge",
-                "--merge-only-column",
-                "c",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--merge-only-column",
+            "c",
+            str(test_file),
         )
 
     assert "Merge only column(s) {'c'} not found in csv file" in str(e.value)
@@ -153,27 +137,22 @@ def test_merge_only_column_ok(tmp_path, db_maker):
     test_db.add_row({"a": "a", "b": "b1", "c": "c1"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--merge-only-column",
-            "c",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--merge-only-column",
+        "c",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert getattr(table_rows[0].columns, "c") == "c2"
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert test_db.rows[0].columns["c"] == "c2"
 
 
 @pytest.mark.vcr()
@@ -187,20 +166,18 @@ def test_merge_skip_new(tmp_path, db_maker):
     test_file.write_text("a,b\na1,b11\na2,b22\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--merge-skip-new",
-            "--max-threads=1",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--merge-skip-new",
+        "--max-threads=1",
+        str(test_file),
     )
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a1"
-    assert getattr(test_db.rows[0].columns, "b") == "b11"
+    assert test_db.rows[0].columns["a"] == "a1"
+    assert test_db.rows[0].columns["b"] == "b11"

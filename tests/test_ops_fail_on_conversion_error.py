@@ -42,13 +42,10 @@ def test_fail_on_conversion_error_ok(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "number"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == 123
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == 123

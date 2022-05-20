@@ -45,22 +45,19 @@ def test_fail_on_unsupported_columns_ok(tmp_path, caplog, db_maker):
             str(test_file),
         )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "created_by"
     assert test_db.schema_dict["c"]["type"] == "last_edited_by"
     assert test_db.schema_dict["d"]["type"] == "rollup"
     assert test_db.schema_dict["e"]["type"] == "formula"
 
-    assert table_header == {"a", "b", "c", "d", "e"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b", "c", "d", "e"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert isinstance(getattr(table_rows[0].columns, "b"), User)
-    assert isinstance(getattr(table_rows[0].columns, "c"), User)
-    assert getattr(table_rows[0].columns, "d") is None
-    assert getattr(table_rows[0].columns, "e") is None
+    assert test_db.rows[0].columns["a"] == "a"
+    assert isinstance(test_db.rows[0].columns["b"], User)
+    assert isinstance(test_db.rows[0].columns["c"], User)
+    assert test_db.rows[0].columns["d"] is None
+    assert test_db.rows[0].columns["e"] is None
     assert (
         "Cannot set value to these columns"
         " due to unsupported type: ['b', 'c', 'd', 'e']" in caplog.text

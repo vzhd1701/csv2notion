@@ -22,16 +22,13 @@ def test_custom_types_file_empty(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "file"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == []
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == []
 
 
 @pytest.mark.vcr()
@@ -74,18 +71,15 @@ def test_custom_types_file_embed(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "file"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 2
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 2
 
-    assert getattr(table_rows[0].columns, "a") == "a1"
-    assert getattr(table_rows[0].columns, "b") == ["https://via.placeholder.com/100"]
-    assert getattr(table_rows[1].columns, "a") == "a2"
-    assert getattr(table_rows[1].columns, "b") == [
+    assert test_db.rows[0].columns["a"] == "a1"
+    assert test_db.rows[0].columns["b"] == ["https://via.placeholder.com/100"]
+    assert test_db.rows[1].columns["a"] == "a2"
+    assert test_db.rows[1].columns["b"] == [
         "https://via.placeholder.com/100",
         "https://via.placeholder.com/200",
     ]
@@ -108,16 +102,13 @@ def test_custom_types_file_duplicate(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "file"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == ["https://via.placeholder.com/100"]
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == ["https://via.placeholder.com/100"]
 
 
 @pytest.mark.vcr()
@@ -137,18 +128,15 @@ def test_custom_types_file_multi_column(tmp_path, db_maker):
         str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "file"
     assert test_db.schema_dict["c"]["type"] == "file"
 
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == ["https://via.placeholder.com/100"]
-    assert getattr(table_rows[0].columns, "c") == ["https://via.placeholder.com/200"]
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == ["https://via.placeholder.com/100"]
+    assert test_db.rows[0].columns["c"] == ["https://via.placeholder.com/200"]
 
 
 @pytest.mark.vcr()
@@ -168,13 +156,10 @@ def test_custom_types_file_upload(tmp_path, db_maker, smallest_gif):
         str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.schema_dict["b"]["type"] == "file"
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert "test_image.gif" in getattr(table_rows[0].columns, "b")[0]
+    assert test_db.rows[0].columns["a"] == "a"
+    assert "test_image.gif" in test_db.rows[0].columns["b"][0]

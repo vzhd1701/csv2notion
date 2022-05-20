@@ -1,6 +1,3 @@
-import logging
-import os
-import re
 from pathlib import Path
 
 import pytest
@@ -11,17 +8,17 @@ from csv2notion.utils_exceptions import CriticalError, NotionError
 
 def test_no_args():
     with pytest.raises(SystemExit):
-        cli([])
+        cli()
 
 
 def test_help():
     with pytest.raises(SystemExit):
-        cli(["--help"])
+        cli("--help")
 
 
 def test_missing_csv():
     with pytest.raises(CriticalError) as e:
-        cli(["--token", "fake", "fake.csv"])
+        cli("--token", "fake", "fake.csv")
 
     assert "File fake.csv not found" in str(e.value)
 
@@ -31,7 +28,7 @@ def test_empty_csv(tmp_path):
     test_file.touch()
 
     with pytest.raises(CriticalError) as e:
-        cli(["--token", "fake", str(test_file)])
+        cli("--token", "fake", str(test_file))
 
     assert "CSV file is empty" in str(e.value)
 
@@ -42,7 +39,7 @@ def test_bad_token(tmp_path):
     test_file.write_text("a,b,c\n1,2,3\n")
 
     with pytest.raises(NotionError) as e:
-        cli(["--token", "fake", str(test_file)])
+        cli("--token", "fake", str(test_file))
 
     assert "Invalid Notion token" in str(e.value)
 
@@ -54,13 +51,11 @@ def test_bad_url(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                "https://notnotion.com/bad_url",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            "https://notnotion.com/bad_url",
+            str(test_file),
         )
 
     assert "Invalid URL" in str(e.value)
@@ -77,13 +72,11 @@ def test_bad_url_type(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_row.get_browseable_url(),
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_row.get_browseable_url(),
+            str(test_file),
         )
 
     assert "Provided URL links does not point to a Notion database" in str(e.value)
@@ -97,17 +90,14 @@ def test_new_page(tmp_path, db_maker):
 
     test_db = db_maker.from_cli("--token", db_maker.token, str(test_file))
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
     assert test_db.page.title == db_maker.page_name
     assert test_db.page.type == "collection_view_page"
 
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert getattr(table_rows[0].columns, "c") == "c"
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert test_db.rows[0].columns["c"] == "c"
 
 
 @pytest.mark.vcr()
@@ -120,17 +110,14 @@ def test_new_page_empty_rows(tmp_path, db_maker):
         "--token", db_maker.token, "--max-threads=1", str(test_file)
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 2
-    assert getattr(table_rows[0].columns, "a") == ""
-    assert getattr(table_rows[0].columns, "b") == ""
-    assert getattr(table_rows[0].columns, "c") == ""
-    assert getattr(table_rows[1].columns, "a") == ""
-    assert getattr(table_rows[1].columns, "b") == ""
-    assert getattr(table_rows[1].columns, "c") == ""
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 2
+    assert test_db.rows[0].columns["a"] == ""
+    assert test_db.rows[0].columns["b"] == ""
+    assert test_db.rows[0].columns["c"] == ""
+    assert test_db.rows[1].columns["a"] == ""
+    assert test_db.rows[1].columns["b"] == ""
+    assert test_db.rows[1].columns["c"] == ""
 
 
 @pytest.mark.vcr()
@@ -141,17 +128,16 @@ def test_new_page_column_order(tmp_path, db_maker):
 
     test_db = db_maker.from_cli("--token", db_maker.token, str(test_file))
 
-    table_rows = test_db.rows
     table_view_header = test_db.default_view_header
 
     assert test_db.page.title == db_maker.page_name
     assert test_db.page.type == "collection_view_page"
 
     assert table_view_header == ["c", "b", "a"]
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert getattr(table_rows[0].columns, "c") == "c"
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert test_db.rows[0].columns["c"] == "c"
 
 
 @pytest.mark.vcr()
@@ -163,23 +149,18 @@ def test_existing_page(tmp_path, db_maker):
     test_db = db_maker.from_csv_head("a,b,c")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        str(test_file),
     )
 
-    table_header = {c["name"] for c in test_db.schema}
-    table_rows = test_db.rows
-
-    assert table_header == {"a", "b", "c"}
-    assert len(table_rows) == 1
-    assert getattr(table_rows[0].columns, "a") == "aa"
-    assert getattr(table_rows[0].columns, "b") == "bb"
-    assert getattr(table_rows[0].columns, "c") == "cc"
+    assert test_db.header == {"a", "b", "c"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "aa"
+    assert test_db.rows[0].columns["b"] == "bb"
+    assert test_db.rows[0].columns["c"] == "cc"
 
 
 def test_log_file(fs, mocker):

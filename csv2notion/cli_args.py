@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import List
+from typing import Sequence
 
 from csv2notion.notion_convert_map import map_icon
 from csv2notion.utils_exceptions import CriticalError
@@ -9,7 +9,7 @@ from csv2notion.utils_str import split_str
 from csv2notion.version import __version__
 
 
-def parse_args(argv: List[str]) -> argparse.Namespace:
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="csv2notion", description="Import/Merge CSV file into Notion database"
     )

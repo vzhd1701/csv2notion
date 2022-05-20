@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from csv2notion.cli_args import parse_args
 from csv2notion.cli_steps import convert_csv_to_notion_rows, new_database, upload_rows
@@ -14,7 +14,7 @@ from csv2notion.utils_exceptions import CriticalError, NotionError
 logger = logging.getLogger(__name__)
 
 
-def cli(argv: List[str]) -> None:
+def cli(*argv: str) -> None:
     args = parse_args(argv)
 
     setup_logging(is_verbose=args.verbose, log_file=args.log)
@@ -72,7 +72,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, abort)
 
     try:
-        cli(sys.argv[1:])
+        cli(*sys.argv[1:])
     except (NotionError, CriticalError) as e:
         logger.critical(str(e))
         sys.exit(1)

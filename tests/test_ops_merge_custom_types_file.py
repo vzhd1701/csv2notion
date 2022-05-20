@@ -25,32 +25,27 @@ def test_merge_custom_types_file_with_content_no_reupload(
         str(test_file),
     )
 
-    pre_file_url = getattr(test_db.rows[0].columns, "b")[0]
+    pre_file_url = test_db.rows[0].columns["b"][0]
     pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--custom-types",
-            "file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--custom-types",
+        "file",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-
-    post_file_url = getattr(test_db.rows[0].columns, "b")[0]
+    post_file_url = test_db.rows[0].columns["b"][0]
     post_file_id = re.search("secure.notion-static.com/([^/]+)", post_file_url)[1]
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
+    assert test_db.rows[0].columns["a"] == "a"
     assert pre_file_id == post_file_id
 
 
@@ -77,31 +72,29 @@ def test_merge_custom_types_file_with_content_reupload(
         str(test_file),
     )
 
-    pre_file_url = getattr(test_db.rows[0].columns, "b")[0]
+    pre_file_url = test_db.rows[0].columns["b"][0]
     pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
 
     test_file.write_text(f"a,b\na,{test_image2.name}")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--custom-types",
-            "file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--custom-types",
+        "file",
+        str(test_file),
     )
 
-    post_file_url = getattr(test_db.rows[0].columns, "b")[0]
+    post_file_url = test_db.rows[0].columns["b"][0]
     post_file_id = re.search("secure.notion-static.com/([^/]+)", post_file_url)[1]
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a"
+    assert test_db.rows[0].columns["a"] == "a"
     assert pre_file_id != post_file_id
 
 
@@ -127,23 +120,21 @@ def test_merge_custom_types_file_with_content_upload_on_empty(
     test_file.write_text(f"a,b\na,{test_image.name}")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--custom-types",
-            "file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--custom-types",
+        "file",
+        str(test_file),
     )
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a"
-    assert test_image.name in getattr(test_db.rows[0].columns, "b")[0]
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_image.name in test_db.rows[0].columns["b"][0]
 
 
 @pytest.mark.vcr()
@@ -165,23 +156,21 @@ def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker):
     )
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--custom-types",
-            "file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--custom-types",
+        "file",
+        str(test_file),
     )
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a"
-    assert getattr(test_db.rows[0].columns, "b") == [
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == [
         "https://via.placeholder.com/100",
         "https://via.placeholder.com/200",
     ]
@@ -208,23 +197,21 @@ def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker):
     )
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--custom-types",
-            "file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--custom-types",
+        "file",
+        str(test_file),
     )
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a"
-    assert getattr(test_db.rows[0].columns, "b") == [
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == [
         "https://via.placeholder.com/100",
         "https://via.placeholder.com/200",
     ]

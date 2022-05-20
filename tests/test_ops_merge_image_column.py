@@ -21,28 +21,24 @@ def test_merge_image_column_ok(tmp_path, db_maker):
     test_db.add_row({"a": "a", "b": "b1"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert len(table_rows[0].children) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert len(test_db.rows[0].children) == 1
     assert image.type == "image"
     assert image.display_source == test_image_url
 
@@ -61,28 +57,24 @@ def test_merge_image_column_with_content_ok(tmp_path, db_maker):
     test_row.children.add_new(TextBlock, title="test")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert len(table_rows[0].children) == 2
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert len(test_db.rows[0].children) == 2
     assert image.type == "image"
     assert image.display_source == test_image_url
 
@@ -101,28 +93,24 @@ def test_merge_image_column_with_content_other_image(tmp_path, db_maker):
     test_row.children.add_new(ImageBlock, source="https://via.placeholder.com/200")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b1"
-    assert len(table_rows[0].children) == 2
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b1"
+    assert len(test_db.rows[0].children) == 2
     assert image.type == "image"
     assert image.display_source == test_image_url
 
@@ -147,28 +135,24 @@ def test_merge_image_column_with_image_content_ok(tmp_path, db_maker):
     test_file.write_text(f"a,b,image url\na,b,{test_image_url2}")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
-    image = table_rows[0].children[0]
+    image = test_db.rows[0].children[0]
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 1
     assert image.type == "image"
     assert image.display_source == test_image_url2
 
@@ -192,26 +176,21 @@ def test_merge_image_column_with_image_content_remove(tmp_path, db_maker):
     test_file.write_text(f"a,image url\na,")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert len(table_rows[0].children) == 0
+    assert test_db.rows[0].columns["a"] == "a"
+    assert len(test_db.rows[0].children) == 0
 
 
 @pytest.mark.vcr()
@@ -243,16 +222,14 @@ def test_merge_image_column_with_image_content_file_no_reupload(
     test_file.write_text(f"a,b,image file\na,b,{test_image2.name}")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image file",
+        str(test_file),
     )
 
     image = test_db.rows[0].children[0]
@@ -263,8 +240,8 @@ def test_merge_image_column_with_image_content_file_no_reupload(
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a"
-    assert getattr(test_db.rows[0].columns, "b") == "b"
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
     assert len(test_db.rows[0].children) == 1
 
     assert image.type == "image"
@@ -299,16 +276,14 @@ def test_merge_image_column_with_image_content_file_reupload(
     test_file.write_text(f"a,b,image file\na,b,{test_image2.name}")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image file",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image file",
+        str(test_file),
     )
 
     image = test_db.rows[0].children[0]
@@ -319,8 +294,8 @@ def test_merge_image_column_with_image_content_file_reupload(
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
-    assert getattr(test_db.rows[0].columns, "a") == "a"
-    assert getattr(test_db.rows[0].columns, "b") == "b"
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
     assert len(test_db.rows[0].children) == 1
 
     assert image.type == "image"
@@ -350,30 +325,25 @@ def test_merge_image_column_cover_with_content(tmp_path, db_maker):
     test_file.write_text(f"a,b,image url\na,b,{test_image_url2}\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            "--image-column-mode",
-            "cover",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
-    assert table_rows[0].cover == test_image_url2
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
+    assert test_db.rows[0].cover == test_image_url2
 
 
 @pytest.mark.vcr()
@@ -395,30 +365,25 @@ def test_merge_image_column_cover_with_content_no_update(tmp_path, db_maker):
     )
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            "--image-column-mode",
-            "cover",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
-    assert table_rows[0].cover == test_image_url
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
+    assert test_db.rows[0].cover == test_image_url
 
 
 @pytest.mark.vcr()
@@ -442,29 +407,24 @@ def test_merge_image_column_cover_with_content_remove(tmp_path, db_maker):
     test_file.write_text(f"a,image url\na,\n")
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            "--image-column-mode",
-            "cover",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert len(table_rows[0].children) == 0
-    assert table_rows[0].cover is None
+    assert test_db.rows[0].columns["a"] == "a"
+    assert len(test_db.rows[0].children) == 0
+    assert test_db.rows[0].cover is None
 
 
 @pytest.mark.vcr()
@@ -479,27 +439,22 @@ def test_merge_image_column_cover_empty(tmp_path, db_maker):
     test_db.add_row({"a": "a", "b": "b"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--merge",
-            "--image-column",
-            "image url",
-            "--image-column-mode",
-            "cover",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--merge",
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
     )
 
-    table_rows = test_db.rows
-    table_header = test_db.header
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
 
-    assert table_header == {"a", "b"}
-    assert len(table_rows) == 1
-
-    assert getattr(table_rows[0].columns, "a") == "a"
-    assert getattr(table_rows[0].columns, "b") == "b"
-    assert len(table_rows[0].children) == 0
-    assert table_rows[0].cover == test_image_url
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
+    assert test_db.rows[0].cover == test_image_url

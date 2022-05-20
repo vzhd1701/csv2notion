@@ -23,14 +23,12 @@ def test_fail_on_relation_duplicates(tmp_path, db_maker):
 
     with pytest.raises(NotionError) as e:
         cli(
-            [
-                "--token",
-                db_maker.token,
-                "--url",
-                test_db.url,
-                "--fail-on-relation-duplicates",
-                str(test_file),
-            ]
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--fail-on-relation-duplicates",
+            str(test_file),
         )
 
     relation_name = test_db_relation.page.title
@@ -55,31 +53,26 @@ def test_fail_on_relation_duplicates_ok(tmp_path, db_maker):
     test_db_relation.add_row({"c": "cc"})
 
     cli(
-        [
-            "--token",
-            db_maker.token,
-            "--url",
-            test_db.url,
-            "--fail-on-relation-duplicates",
-            str(test_file),
-        ]
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--fail-on-relation-duplicates",
+        str(test_file),
     )
 
-    table_main_rows = test_db.rows
-    table_main_header = test_db.header
-
-    table_relation_rows = test_db_relation.rows
-    table_relation_header = test_db_relation.header
+    test_db.refresh()
+    test_db_relation.refresh()
 
     relation_column = f"Related to {test_db.page.title} (b)"
 
-    assert table_main_header == {"a", "b"}
-    assert len(table_main_rows) == 1
-    assert table_relation_header == {"c", "d", relation_column}
-    assert len(table_relation_rows) == 1
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db_relation.header == {"c", "d", relation_column}
+    assert len(test_db_relation.rows) == 1
 
-    assert getattr(table_main_rows[0].columns, "a") == "a"
-    assert getattr(table_main_rows[0].columns, "b") == []
-    assert getattr(table_relation_rows[0].columns, "c") == "cc"
-    assert getattr(table_relation_rows[0].columns, "d") == ""
-    assert getattr(table_relation_rows[0].columns, slugify(relation_column)) == []
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == []
+    assert test_db_relation.rows[0].columns["c"] == "cc"
+    assert test_db_relation.rows[0].columns["d"] == ""
+    assert test_db_relation.rows[0].columns[slugify(relation_column)] == []
