@@ -140,9 +140,9 @@ def make_new_db_from_csv(
 
 def _schema_from_csv(csv_data: CSVData, skip_columns: List[str] = None) -> dict:
     if skip_columns:
-        columns = [c for c in csv_data.keys() if c not in skip_columns]
+        columns = [c for c in csv_data.columns if c not in skip_columns]
     else:
-        columns = csv_data.keys()
+        columns = csv_data.columns
 
     schema_ids = rand_id_list(len(columns) - 1, 4)
 

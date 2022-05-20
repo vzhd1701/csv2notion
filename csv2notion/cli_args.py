@@ -183,6 +183,13 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
             ),
             "metavar": "COLUMN",
         },
+        "--merge-skip-new": {
+            "action": "store_true",
+            "default": False,
+            "help": (
+                "skip new rows in CSV that are not already in Notion DB during merge"
+            ),
+        },
         "--mandatory-column": {
             "action": "append",
             "help": (

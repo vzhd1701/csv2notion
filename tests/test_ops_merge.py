@@ -1,3 +1,6 @@
+import logging
+import re
+
 import pytest
 
 from csv2notion.cli import cli
@@ -171,3 +174,38 @@ def test_merge_only_column_ok(tmp_path, db_maker):
     assert getattr(table_rows[0].columns, "a") == "a"
     assert getattr(table_rows[0].columns, "b") == "b1"
     assert getattr(table_rows[0].columns, "c") == "c2"
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_merge_skip_new(tmp_path, db_maker, caplog):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b\na1,b1\n")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(["--token", db_maker.token, str(test_file)])
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    test_file.write_text("a,b\na1,b11\na2,b22\n")
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--merge",
+            "--merge-skip-new",
+            "--max-threads=1",
+            str(test_file),
+        ]
+    )
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert getattr(test_db.rows[0].columns, "a") == "a1"
+    assert getattr(test_db.rows[0].columns, "b") == "b11"
