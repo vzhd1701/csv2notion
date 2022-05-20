@@ -117,6 +117,32 @@ def test_new_page(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
+def test_new_page_empty_rows(tmp_path, caplog, db_maker):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text("a,b,c\n\n\n,\n\n\n,,")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        cli(["--token", db_maker.token, "--max-threads=1", str(test_file)])
+
+    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
+
+    test_db = db_maker.from_url(url)
+
+    table_rows = test_db.rows
+    table_header = test_db.header
+
+    assert table_header == {"a", "b", "c"}
+    assert len(table_rows) == 2
+    assert getattr(table_rows[0].columns, "a") == ""
+    assert getattr(table_rows[0].columns, "b") == ""
+    assert getattr(table_rows[0].columns, "c") == ""
+    assert getattr(table_rows[1].columns, "a") == ""
+    assert getattr(table_rows[1].columns, "b") == ""
+    assert getattr(table_rows[1].columns, "c") == ""
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
 def test_new_page_column_order(tmp_path, caplog, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("c,b,a\nc,b,a\n")
