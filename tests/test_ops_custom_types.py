@@ -49,25 +49,18 @@ def test_custom_types_bad_count(tmp_path):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_checkbox(tmp_path, caplog, db_maker):
+def test_custom_types_checkbox(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,true\nb,false\nc,test")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "checkbox",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "checkbox",
+        "--max-threads=1",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -87,25 +80,18 @@ def test_custom_types_checkbox(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_date(tmp_path, caplog, db_maker):
+def test_custom_types_date(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,2001-12-01\nb,bad")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "date",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "date",
+        "--max-threads=1",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -123,25 +109,18 @@ def test_custom_types_date(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_textlike(tmp_path, caplog, db_maker):
+def test_custom_types_textlike(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,c,d,e\na1,b1,c1,d1,e1")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "email,phone_number,url,text",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "email,phone_number,url,text",
+        "--max-threads=1",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -163,25 +142,18 @@ def test_custom_types_textlike(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_multi_select(tmp_path, caplog, db_maker):
+def test_custom_types_multi_select(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text('a,b\na,"b1, b2, b3"')
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "multi_select",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "multi_select",
+        "--max-threads=1",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -200,25 +172,18 @@ def test_custom_types_multi_select(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_select(tmp_path, caplog, db_maker):
+def test_custom_types_select(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na1,b1\na2,b2")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "select",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "select",
+        "--max-threads=1",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -239,25 +204,18 @@ def test_custom_types_select(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_number(tmp_path, caplog, db_maker):
+def test_custom_types_number(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na1,100\na2,1.25\na3,bad")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "number",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "number",
+        "--max-threads=1",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header

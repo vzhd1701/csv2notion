@@ -87,24 +87,17 @@ def test_image_column_empty(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_image_column_skip_for_new_db(tmp_path, db_maker, caplog):
+def test_image_column_skip_for_new_db(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,image file\na,b,\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image file",
+        str(test_file),
+    )
 
     table_header = test_db.header
     table_rows = test_db.rows
@@ -322,25 +315,18 @@ def test_image_column_keep_ok(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_image_column_keep_ok_for_new_db(tmp_path, db_maker, caplog):
+def test_image_column_keep_ok_for_new_db(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,image file\na,b,\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image file",
-                "--image-column-keep",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image file",
+        "--image-column-keep",
+        str(test_file),
+    )
 
     table_header = test_db.header
     table_rows = test_db.rows

@@ -129,27 +129,20 @@ def test_merge_image_column_with_content_other_image(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_image_column_with_image_content_ok(tmp_path, db_maker, caplog):
+def test_merge_image_column_with_image_content_ok(tmp_path, db_maker):
     test_image_url1 = "https://via.placeholder.com/100"
     test_image_url2 = "https://via.placeholder.com/200"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b,image url\na,b,{test_image_url1}\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image url",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image url",
+        str(test_file),
+    )
 
     test_file.write_text(f"a,b,image url\na,b,{test_image_url2}")
 
@@ -182,26 +175,19 @@ def test_merge_image_column_with_image_content_ok(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_image_column_with_image_content_remove(tmp_path, db_maker, caplog):
+def test_merge_image_column_with_image_content_remove(tmp_path, db_maker):
     test_image_url = "https://via.placeholder.com/100"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,image url\na,{test_image_url}\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image url",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image url",
+        str(test_file),
+    )
 
     test_file.write_text(f"a,image url\na,")
 
@@ -231,7 +217,7 @@ def test_merge_image_column_with_image_content_remove(tmp_path, db_maker, caplog
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_image_column_with_image_content_file_no_reupload(
-    tmp_path, smallest_gif, db_maker, caplog
+    tmp_path, smallest_gif, db_maker
 ):
     test_image1 = tmp_path / "test_image1.gif"
     test_image1.write_bytes(smallest_gif)
@@ -242,20 +228,14 @@ def test_merge_image_column_with_image_content_file_no_reupload(
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b,image file\na,b,{test_image1.name}")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image file",
-                str(test_file),
-            ]
-        )
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image file",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
     image_meta_pre = (
         test_db.rows[0].children[0].get("properties.cover_meta", force_refresh=True)
     )
@@ -294,7 +274,7 @@ def test_merge_image_column_with_image_content_file_no_reupload(
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_image_column_with_image_content_file_reupload(
-    tmp_path, smallest_gif, db_maker, caplog
+    tmp_path, smallest_gif, db_maker
 ):
     test_image1 = tmp_path / "test_image1.gif"
     test_image1.write_bytes(smallest_gif)
@@ -308,20 +288,13 @@ def test_merge_image_column_with_image_content_file_reupload(
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b,image file\na,b,{test_image1.name}")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image file",
+        str(test_file),
+    )
 
     test_file.write_text(f"a,b,image file\na,b,{test_image2.name}")
 
@@ -357,29 +330,22 @@ def test_merge_image_column_with_image_content_file_reupload(
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_image_column_cover_with_content(tmp_path, db_maker, caplog):
+def test_merge_image_column_cover_with_content(tmp_path, db_maker):
     test_image_url1 = "https://via.placeholder.com/100"
     test_image_url2 = "https://via.placeholder.com/200"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b,image url\na,b,{test_image_url1}\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image url",
-                "--image-column-mode",
-                "cover",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
+    )
 
     test_file.write_text(f"a,b,image url\na,b,{test_image_url2}\n")
 
@@ -412,28 +378,21 @@ def test_merge_image_column_cover_with_content(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_image_column_cover_with_content_no_update(tmp_path, db_maker, caplog):
+def test_merge_image_column_cover_with_content_no_update(tmp_path, db_maker):
     test_image_url = "https://via.placeholder.com/100"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b,image url\na,b,{test_image_url}\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image url",
-                "--image-column-mode",
-                "cover",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
+    )
 
     cli(
         [
@@ -464,28 +423,21 @@ def test_merge_image_column_cover_with_content_no_update(tmp_path, db_maker, cap
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_image_column_cover_with_content_remove(tmp_path, db_maker, caplog):
+def test_merge_image_column_cover_with_content_remove(tmp_path, db_maker):
     test_image_url = "https://via.placeholder.com/100"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,image url\na,{test_image_url}\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image url",
-                "--image-column-mode",
-                "cover",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image url",
+        "--image-column-mode",
+        "cover",
+        str(test_file),
+    )
 
     test_file.write_text(f"a,image url\na,\n")
 

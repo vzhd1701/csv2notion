@@ -1,13 +1,17 @@
 import base64
 import json
+import logging
 import os
+import re
 import uuid
 from pathlib import Path
 
 import pytest
 from notion.client import NotionClient
 from pyfakefs.fake_filesystem_unittest import Patcher
+from testfixtures import LogCapture, ShouldRaise
 
+from csv2notion.cli import cli
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_db import make_new_db_from_csv
 from csv2notion.notion_row import CollectionRowBlockExtended
@@ -170,7 +174,7 @@ class NotionDBMaker(object):
         self.page_name = page_name
         self.databases = []
 
-    def from_csv_head(self, csv_head):
+    def from_csv_head(self, csv_head) -> NotionDB:
         col_number = len(csv_head.split(","))
         csv_body = ",".join(["test"] * col_number)
         csv_content = f"{csv_head}\n{csv_body}"
@@ -185,7 +189,7 @@ class NotionDBMaker(object):
 
         return self.from_url(url)
 
-    def from_url(self, url):
+    def from_url(self, url) -> NotionDB:
         page = self.client.get_block(url)
 
         new_db = NotionDB(page, url)
@@ -193,6 +197,25 @@ class NotionDBMaker(object):
         self.databases.append(new_db)
 
         return new_db
+
+    def from_cli(self, *args: str) -> NotionDB:
+        with LogCapture("csv2notion", level=logging.INFO) as log:
+            cli(list(args))
+
+        url = re.search(r"New database URL: (.*)$", str(log), re.M)[1]
+
+        return self.from_url(url)
+
+    def from_raising_cli(self, *args: str) -> ShouldRaise:
+        with ShouldRaise() as e:
+            with LogCapture("csv2notion", level=logging.INFO) as log:
+                cli(list(args))
+
+        url = re.search(r"New database URL: (.*)$", str(log), re.M)[1]
+
+        self.from_url(url)
+
+        return e
 
     def cleanup(self):
         for db in self.databases:

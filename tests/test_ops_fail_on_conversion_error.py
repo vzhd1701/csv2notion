@@ -10,51 +10,37 @@ from csv2notion.utils_exceptions import NotionError
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_conversion_error(tmp_path, db_maker, caplog):
+def test_fail_on_conversion_error(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,not_a_number")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        with pytest.raises(NotionError) as e:
-            cli(
-                [
-                    "--token",
-                    db_maker.token,
-                    "--fail-on-conversion-error",
-                    "--custom-types",
-                    "number",
-                    str(test_file),
-                ]
-            )
+    e = db_maker.from_raising_cli(
+        "--token",
+        db_maker.token,
+        "--fail-on-conversion-error",
+        "--custom-types",
+        "number",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    db_maker.from_url(url)
-
-    assert "CSV [2]: could not convert string to float: 'not_a_number'" in str(e.value)
+    assert isinstance(e.raised, NotionError)
+    assert "CSV [2]: could not convert string to float: 'not_a_number'" in str(e.raised)
 
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_conversion_error_ok(tmp_path, caplog, db_maker):
+def test_fail_on_conversion_error_ok(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,123")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--fail-on-conversion-error",
-                "--custom-types",
-                "number",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--fail-on-conversion-error",
+        "--custom-types",
+        "number",
+        str(test_file),
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header

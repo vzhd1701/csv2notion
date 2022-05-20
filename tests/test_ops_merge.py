@@ -178,16 +178,11 @@ def test_merge_only_column_ok(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_skip_new(tmp_path, db_maker, caplog):
+def test_merge_skip_new(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b\na1,b1\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(["--token", db_maker.token, str(test_file)])
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli("--token", db_maker.token, str(test_file))
 
     test_file.write_text("a,b\na1,b11\na2,b22\n")
 

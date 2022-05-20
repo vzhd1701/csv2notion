@@ -9,7 +9,7 @@ from csv2notion.cli import cli
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_custom_types_file_with_content_no_reupload(
-    tmp_path, db_maker, smallest_gif, caplog
+    tmp_path, db_maker, smallest_gif
 ):
     test_icon = tmp_path / "test_icon1.gif"
     test_icon.write_bytes(smallest_gif)
@@ -17,20 +17,13 @@ def test_merge_custom_types_file_with_content_no_reupload(
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na,{test_icon.name}")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "file",
+        str(test_file),
+    )
 
     pre_file_url = getattr(test_db.rows[0].columns, "b")[0]
     pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
@@ -64,7 +57,7 @@ def test_merge_custom_types_file_with_content_no_reupload(
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_custom_types_file_with_content_reupload(
-    tmp_path, smallest_gif, db_maker, caplog
+    tmp_path, smallest_gif, db_maker
 ):
     test_image1 = tmp_path / "test_image1.gif"
     test_image1.write_bytes(smallest_gif)
@@ -76,20 +69,13 @@ def test_merge_custom_types_file_with_content_reupload(
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na,{test_image1.name}")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "file",
+        str(test_file),
+    )
 
     pre_file_url = getattr(test_db.rows[0].columns, "b")[0]
     pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
@@ -122,7 +108,7 @@ def test_merge_custom_types_file_with_content_reupload(
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_custom_types_file_with_content_upload_on_empty(
-    tmp_path, smallest_gif, db_maker, caplog
+    tmp_path, smallest_gif, db_maker
 ):
     test_image = tmp_path / "test_image.gif"
     test_image.write_bytes(smallest_gif)
@@ -130,20 +116,13 @@ def test_merge_custom_types_file_with_content_upload_on_empty(
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na,")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "file",
+        str(test_file),
+    )
 
     test_file.write_text(f"a,b\na,{test_image.name}")
 
@@ -169,24 +148,17 @@ def test_merge_custom_types_file_with_content_upload_on_empty(
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker, caplog):
+def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na,https://via.placeholder.com/100")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "file",
+        str(test_file),
+    )
 
     test_file.write_text(
         f'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
@@ -217,26 +189,19 @@ def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker, 
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker, caplog):
+def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         'a,b\na,"https://via.placeholder.com/200, https://via.placeholder.com/100"'
     )
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "file",
+        str(test_file),
+    )
 
     test_file.write_text(
         f'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'

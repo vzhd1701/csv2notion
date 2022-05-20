@@ -91,16 +91,11 @@ def test_bad_url_type(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_new_page(tmp_path, caplog, db_maker):
+def test_new_page(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,c\na,b,c\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(["--token", db_maker.token, str(test_file)])
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli("--token", db_maker.token, str(test_file))
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -117,16 +112,13 @@ def test_new_page(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_new_page_empty_rows(tmp_path, caplog, db_maker):
+def test_new_page_empty_rows(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,c\n\n\n,\n\n\n,,")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(["--token", db_maker.token, "--max-threads=1", str(test_file)])
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token", db_maker.token, "--max-threads=1", str(test_file)
+    )
 
     table_rows = test_db.rows
     table_header = test_db.header
@@ -143,16 +135,11 @@ def test_new_page_empty_rows(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_new_page_column_order(tmp_path, caplog, db_maker):
+def test_new_page_column_order(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("c,b,a\nc,b,a\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(["--token", db_maker.token, str(test_file)])
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli("--token", db_maker.token, str(test_file))
 
     table_rows = test_db.rows
     table_view_header = test_db.default_view_header

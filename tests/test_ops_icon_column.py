@@ -89,24 +89,17 @@ def test_icon_column_empty(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_icon_column_skip_for_new_db(tmp_path, db_maker, caplog):
+def test_icon_column_skip_for_new_db(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,icon file\na,b,\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--icon-column",
-                "icon file",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--icon-column",
+        "icon file",
+        str(test_file),
+    )
 
     table_header = test_db.header
     table_rows = test_db.rows
@@ -280,25 +273,18 @@ def test_icon_column_keep_ok(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_icon_column_keep_ok_for_new_db(tmp_path, db_maker, caplog):
+def test_icon_column_keep_ok_for_new_db(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,icon file\na,b,\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--icon-column",
-                "icon file",
-                "--icon-column-keep",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--icon-column",
+        "icon file",
+        "--icon-column-keep",
+        str(test_file),
+    )
 
     table_header = test_db.header
     table_rows = test_db.rows
@@ -311,35 +297,35 @@ def test_icon_column_keep_ok_for_new_db(tmp_path, db_maker, caplog):
     assert len(table_rows[0].children) == 0
 
 
-# @pytest.mark.vcr()
-# @pytest.mark.usefixtures("vcr_uuid4")
-# def test_icon_column_keep_same_property(tmp_path, db_maker):
-#     test_icon_url = "https://via.placeholder.com/100"
-#
-#     test_file = tmp_path / "test.csv"
-#     test_file.write_text(f"a,icon\na,{test_icon_url}\n")
-#
-#     test_db = db_maker.from_csv_head("a,icon")
-#
-#     cli(
-#         [
-#             "--token",
-#             db_maker.token,
-#             "--url",
-#             test_db.url,
-#             "--icon-column",
-#             "icon",
-#             "--icon-column-keep",
-#             str(test_file),
-#         ]
-#     )
-#
-#     table_header = {c["name"] for c in test_db.schema}
-#     table_rows = test_db.rows
-#
-#     assert table_header == {"a", "icon"}
-#     assert len(table_rows) == 1
-#     assert getattr(table_rows[0].columns, "a") == "a"
-#     assert getattr(table_rows[0].columns, "icon") == test_icon_url
-#     assert len(table_rows[0].children) == 0
-#     assert table_rows[0].icon == test_icon_url
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_icon_column_keep_same_property_name(tmp_path, db_maker):
+    test_icon_url = "https://via.placeholder.com/100"
+
+    test_file = tmp_path / "test.csv"
+    test_file.write_text(f"a,icon\na,{test_icon_url}\n")
+
+    test_db = db_maker.from_csv_head("a,icon")
+
+    cli(
+        [
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            "--icon-column",
+            "icon",
+            "--icon-column-keep",
+            str(test_file),
+        ]
+    )
+
+    table_header = {c["name"] for c in test_db.schema}
+    table_rows = test_db.rows
+
+    assert table_header == {"a", "icon"}
+    assert len(table_rows) == 1
+    assert getattr(table_rows[0].columns, "a") == "a"
+    assert getattr(table_rows[0].columns, "icon") == test_icon_url
+    assert len(table_rows[0].children) == 0
+    assert table_rows[0].icon == test_icon_url

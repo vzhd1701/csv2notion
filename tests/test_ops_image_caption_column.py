@@ -71,24 +71,17 @@ def test_image_caption_column_empty(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_image_caption_column_skip_for_new_db(tmp_path, db_maker, caplog):
+def test_image_caption_column_skip_for_new_db(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,image column\na,b,\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-caption-column",
-                "image column",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-caption-column",
+        "image column",
+        str(test_file),
+    )
 
     table_header = test_db.header
     table_rows = test_db.rows
@@ -139,28 +132,22 @@ def test_image_caption_column_ok(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_image_caption_column_overwrite(tmp_path, db_maker, caplog):
+def test_image_caption_column_overwrite(tmp_path, db_maker):
     test_image_url = "https://via.placeholder.com/100"
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,image url,image caption\na,{test_image_url},test1\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image url",
-                "--image-caption-column",
-                "image caption",
-                str(test_file),
-            ]
-        )
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image url",
+        "--image-caption-column",
+        "image caption",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
     test_file.write_text(f"a,image url,image caption\na,{test_image_url},test2\n")
 
     cli(
@@ -231,27 +218,20 @@ def test_image_caption_column_keep(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_image_caption_column_keep_for_new_db(tmp_path, db_maker, caplog):
+def test_image_caption_column_keep_for_new_db(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,image file,image caption\na,b,,\n")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--image-column",
-                "image file",
-                "--image-caption-column",
-                "image caption",
-                "--image-caption-column-keep",
-                str(test_file),
-            ]
-        )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--image-column",
+        "image file",
+        "--image-caption-column",
+        "image caption",
+        "--image-caption-column-keep",
+        str(test_file),
+    )
 
     table_header = test_db.header
     table_rows = test_db.rows

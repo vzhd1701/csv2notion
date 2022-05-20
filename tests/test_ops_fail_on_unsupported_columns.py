@@ -10,30 +10,23 @@ from csv2notion.utils_exceptions import NotionError
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_unsupported_columns(tmp_path, db_maker, caplog):
+def test_fail_on_unsupported_columns(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,c,d,e\na,b,c,d,e")
 
-    with pytest.raises(NotionError) as e:
-        with caplog.at_level(logging.INFO, logger="csv2notion"):
-            cli(
-                [
-                    "--token",
-                    db_maker.token,
-                    "--custom-types",
-                    "created_by,last_edited_by,rollup,formula",
-                    "--fail-on-unsupported-columns",
-                    str(test_file),
-                ]
-            )
+    e = db_maker.from_raising_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "created_by,last_edited_by,rollup,formula",
+        "--fail-on-unsupported-columns",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    db_maker.from_url(url)
-
+    assert isinstance(e.raised, NotionError)
     assert (
         "Cannot set value to these columns"
-        " due to unsupported type: ['b', 'c', 'd', 'e']" in str(e.value)
+        " due to unsupported type: ['b', 'c', 'd', 'e']" in str(e.raised)
     )
 
 
@@ -44,19 +37,13 @@ def test_fail_on_unsupported_columns_ok(tmp_path, caplog, db_maker):
     test_file.write_text("a,b,c,d,e\na,b,c,d,e")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "created_by,last_edited_by,rollup,formula",
-                str(test_file),
-            ]
+        test_db = db_maker.from_cli(
+            "--token",
+            db_maker.token,
+            "--custom-types",
+            "created_by,last_edited_by,rollup,formula",
+            str(test_file),
         )
-
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
 
     table_rows = test_db.rows
     table_header = test_db.header

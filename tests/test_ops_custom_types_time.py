@@ -10,25 +10,19 @@ from csv2notion.cli import cli
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_created_time(tmp_path, caplog, db_maker):
+def test_custom_types_created_time(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,2001-12-01\nb,bad")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "created_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "created_time",
+        "--max-threads=1",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
     test_client = test_db.page._client
 
     table_rows = test_db.rows
@@ -58,27 +52,21 @@ def test_custom_types_created_time(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_created_time_multi(tmp_path, caplog, db_maker):
+def test_custom_types_created_time_multi(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         "a,b,c\na,2001-11-01,2001-12-01\nb,2001-12-01,bad\nc,bad,2001-12-01"
     )
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "created_time,created_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "created_time,created_time",
+        "--max-threads=1",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
     test_client = test_db.page._client
 
     table_rows = test_db.rows
@@ -115,25 +103,19 @@ def test_custom_types_created_time_multi(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_last_edited_time(tmp_path, caplog, db_maker):
+def test_custom_types_last_edited_time(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,2001-12-01\nb,bad")
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "last_edited_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "last_edited_time",
+        "--max-threads=1",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
     test_client = test_db.page._client
 
     table_rows = test_db.rows
@@ -163,27 +145,21 @@ def test_custom_types_last_edited_time(tmp_path, caplog, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_last_edited_time_multi(tmp_path, caplog, db_maker):
+def test_custom_types_last_edited_time_multi(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         "a,b,c\na,2001-11-01,2001-12-01\nb,2001-12-01,bad\nc,bad,2001-12-01"
     )
 
-    with caplog.at_level(logging.INFO, logger="csv2notion"):
-        cli(
-            [
-                "--token",
-                db_maker.token,
-                "--custom-types",
-                "last_edited_time,last_edited_time",
-                "--max-threads=1",
-                str(test_file),
-            ]
-        )
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--custom-types",
+        "last_edited_time,last_edited_time",
+        "--max-threads=1",
+        str(test_file),
+    )
 
-    url = re.search(r"New database URL: (.*)$", caplog.text, re.M)[1]
-
-    test_db = db_maker.from_url(url)
     test_client = test_db.page._client
 
     table_rows = test_db.rows
