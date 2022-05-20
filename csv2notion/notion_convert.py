@@ -238,17 +238,13 @@ class NotionRowConverter(object):  # noqa:  WPS214
             return None
 
     def _resolve_relation_by_url(self, relation_column, url):
-        try:
-            block_id = extract_id(url)
-        except InvalidNotionIdentifier:
-            if self.rules["missing_relations_action"] == "ignore":
-                return None
-            raise NotionError(f"'{url}' is not a valid Notion URL.")
+        block_id = self._extract_id(url)
 
         relation = self.db.relation(relation_column)
+        relation_rows = relation["rows"].values()
 
         try:
-            return next(r for r in relation["rows"].values() if r.id == block_id)
+            return next(r for r in relation_rows if r.id == block_id)
         except StopIteration:
             if self.rules["missing_relations_action"] in {"add", "fail"}:
                 raise NotionError(
@@ -257,6 +253,14 @@ class NotionRowConverter(object):  # noqa:  WPS214
                 )
 
             return None
+
+    def _extract_id(self, url):
+        try:
+            return extract_id(url)
+        except InvalidNotionIdentifier:
+            if self.rules["missing_relations_action"] == "ignore":
+                return None
+            raise NotionError(f"'{url}' is not a valid Notion URL.")
 
 
 def _is_banned_extension(file_path: Path) -> bool:

@@ -218,7 +218,7 @@ class NotionPreparator(object):  # noqa: WPS214
         return csv_columns - db_columns
 
     def _get_new_row_keys(self) -> Set[str]:
-        csv_keys = set(v[self.csv.key_column] for v in self.csv)
+        csv_keys = {v[self.csv.key_column] for v in self.csv}
         db_keys = set(self.db.rows)
 
         return csv_keys - db_keys
