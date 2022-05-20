@@ -3,6 +3,8 @@ from functools import partial
 from pathlib import Path
 from typing import List
 
+from notion.utils import InvalidNotionIdentifier, extract_id
+
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_convert_map import (
     map_checkbox,
@@ -207,13 +209,17 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         resolved_relations = []
         for v in col_value:
-            resolved_relation = self._resolve_relation(relation_column, v)
+            if v.startswith("https://www.notion.so/"):
+                resolved_relation = self._resolve_relation_by_url(relation_column, v)
+            else:
+                resolved_relation = self._resolve_relation_by_key(relation_column, v)
+
             if resolved_relation and resolved_relation not in resolved_relations:
                 resolved_relations.append(resolved_relation)
 
         return resolved_relations
 
-    def _resolve_relation(self, relation_column, key):
+    def _resolve_relation_by_key(self, relation_column, key):
         relation = self.db.relation(relation_column)
 
         try:
@@ -227,6 +233,27 @@ class NotionRowConverter(object):  # noqa:  WPS214
                     f"Value '{key}' for relation"
                     f" '{relation_column} [column] -> {relation['name']} [DB]'"
                     f" is not a valid value."
+                )
+
+            return None
+
+    def _resolve_relation_by_url(self, relation_column, url):
+        try:
+            block_id = extract_id(url)
+        except InvalidNotionIdentifier:
+            if self.rules["missing_relations_action"] == "ignore":
+                return None
+            raise NotionError(f"'{url}' is not a valid Notion URL.")
+
+        relation = self.db.relation(relation_column)
+
+        try:
+            return next(r for r in relation["rows"].values() if r.id == block_id)
+        except StopIteration:
+            if self.rules["missing_relations_action"] in {"add", "fail"}:
+                raise NotionError(
+                    f"Row with url '{url}' not found in relation"
+                    f" '{relation_column} [column] -> {relation['name']} [DB]'."
                 )
 
             return None
