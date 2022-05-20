@@ -36,7 +36,7 @@ python = "^3.7"
 python-dateutil = "^2.8.2"
 tqdm = "^4.64.0"
 emoji = "^1.7.0"
-notion-vzhd1701-fork = "0.0.31"
+notion-vzhd1701-fork = "0.0.32"
 
 [tool.poetry.dev-dependencies]
 mdformat = "0.7.7"
