@@ -1,30 +1,33 @@
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, Iterable, Iterator
 
 from csv2notion.notion_db import NotionDB, get_notion_client
 from csv2notion.notion_uploader import NotionRowUploader
 
 
 class ThreadRowUploader(object):
-    def __init__(self, token, url):
+    def __init__(self, token: str, collection_id: str) -> None:
         self.thread_data = threading.local()
 
         self.token = token
-        self.url = url
+        self.collection_id = collection_id
 
-    def worker(self, *args, **kwargs):
+    def worker(self, *args: Any, **kwargs: Any) -> None:
         try:
             notion_uploader = self.thread_data.uploader
         except AttributeError:
             client = get_notion_client(self.token)
-            notion_db = NotionDB(client, self.url)
+            notion_db = NotionDB(client, self.collection_id)
             notion_uploader = NotionRowUploader(notion_db)
             self.thread_data.uploader = notion_uploader
 
         notion_uploader.upload_row(*args, **kwargs)
 
 
-def process_iter(worker, tasks, max_workers):
+def process_iter(
+    worker: Callable[[Any], None], tasks: Iterable[Any], max_workers: int
+) -> Iterator[None]:
     if max_workers == 1:
         yield from map(worker, tasks)
     else:

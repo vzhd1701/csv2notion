@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List, Set
+from typing import Any, Dict, Iterable, List, Set
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_db import NotionDB
@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class NotionPreparator(object):  # noqa: WPS214
-    def __init__(self, db: NotionDB, csv: CSVData, conversion_rules: dict) -> None:
+    def __init__(
+        self, db: NotionDB, csv: CSVData, conversion_rules: Dict[str, Any]
+    ) -> None:
         self.db = db
         self.csv = csv
         self.rules = conversion_rules
@@ -74,7 +76,7 @@ class NotionPreparator(object):  # noqa: WPS214
                 f"Mandatory column(s) {missing_columns} not found in csv file."
             )
 
-    def _handle_merge(self):
+    def _handle_merge(self) -> None:
         if self.rules["is_merge"]:
             self._validate_key_column(self.csv.key_column)
 
@@ -88,7 +90,7 @@ class NotionPreparator(object):  # noqa: WPS214
             if self.rules["merge_skip_new"]:
                 self.csv.drop_rows(*self._get_new_row_keys())
 
-    def _handle_missing_columns(self):
+    def _handle_missing_columns(self) -> None:
         missing_columns = self._get_missing_columns()
         if missing_columns:
             warn_text = f"CSV columns missing from Notion DB: {missing_columns}"
@@ -102,7 +104,7 @@ class NotionPreparator(object):  # noqa: WPS214
                 logger.warning(warn_text)
                 self.csv.drop_columns(*missing_columns)
 
-    def _handle_unsupported_columns(self):
+    def _handle_unsupported_columns(self) -> None:
         unsupported_columns = self._get_unsupported_columns()
         if unsupported_columns:
             warn_text = (
@@ -117,8 +119,11 @@ class NotionPreparator(object):  # noqa: WPS214
 
             self.csv.drop_columns(*unsupported_columns)
 
-    def _handle_inaccessible_relations(self):
-        inaccessible_relations = self._get_inaccessible_relations()
+    def _handle_inaccessible_relations(self) -> None:
+        inaccessible_relations = [
+            r_col for r_col, r in self.db.relations.items() if not r.is_accessible()
+        ]
+
         if inaccessible_relations:
             warn_text = f"Columns with inaccessible relations: {inaccessible_relations}"
 
@@ -130,29 +135,22 @@ class NotionPreparator(object):  # noqa: WPS214
             self.csv.drop_columns(*inaccessible_relations)
 
     def _validate_relations_duplicates(self) -> None:
-        relation_keys = [
-            s_name
-            for s_name, s in self.db.schema.items()
-            if s["type"] == "relation" and s_name in self.csv.columns
-        ]
-
-        for relation in relation_keys:
-            if self.db.is_relation_has_duplicates(relation):
-                relation_name = self.db.relation(relation)["name"]
+        for relation_key, relation in self._present_relations().items():
+            if relation.has_duplicates():
                 raise NotionError(
-                    f"Collection DB '{relation_name}' used in '{relation}'"
+                    f"Collection DB '{relation.name}' used in '{relation_key}'"
                     f" relation column has duplicates which"
                     f" cannot be unambiguously mapped with CSV data."
                 )
 
     def _validate_db_duplicates(self) -> None:
-        if self.db.is_db_has_duplicates():
+        if self.db.has_duplicates():
             raise NotionError("Duplicate values found in DB key column.")
 
     def _validate_key_column(self, key_column: str) -> None:
-        if key_column not in self.db.schema:
+        if key_column not in self.db.columns:
             raise NotionError(f"Key column '{key_column}' does not exist in Notion DB.")
-        if self.db.schema[key_column]["type"] != "title":
+        if self.db.columns[key_column]["type"] != "title":
             raise NotionError(f"Notion DB column '{key_column}' is not a key column.")
 
     def _vlaidate_merge_only_columns(self) -> None:
@@ -165,7 +163,7 @@ class NotionPreparator(object):  # noqa: WPS214
                 f"Merge only column(s) {missing_columns} not found in csv file."
             )
 
-    def _validate_csv_duplicates(self):
+    def _validate_csv_duplicates(self) -> None:
         csv_keys = [v[self.csv.key_column] for v in self.csv]
         if len(set(csv_keys)) != len(csv_keys):
             raise NotionError("Duplicate values found in first column in CSV.")
@@ -174,36 +172,23 @@ class NotionPreparator(object):  # noqa: WPS214
         for column in columns:
             self.db.add_column(column, self.csv.col_type(column))
 
-    def _present_columns(self):
-        return [k for k in self.csv.columns if k in self.db.schema]
+    def _present_columns(self) -> List[str]:
+        return [k for k in self.csv.columns if k in self.db.columns]
+
+    def _present_relations(self) -> Dict[str, NotionDB]:
+        relations = self.db.relations.items()
+        return {k: v for k, v in relations if k in self.csv.columns}
 
     def _get_unsupported_columns(self) -> List[str]:
         return [
             k
             for k in self._present_columns()
-            if self.db.schema[k]["type"] in UNSETTABLE_TYPES
+            if self.db.columns[k]["type"] in UNSETTABLE_TYPES
         ]
-
-    def _get_inaccessible_relations(self) -> List[str]:
-        relation_keys = [
-            s_name
-            for s_name, s in self.db.schema.items()
-            if s["type"] == "relation" and s_name in self.csv.columns
-        ]
-
-        inaccessible_relations = []
-
-        for relation_key in relation_keys:
-            try:
-                self.db.relation(relation_key)
-            except KeyError:
-                inaccessible_relations.append(relation_key)
-
-        return inaccessible_relations
 
     def _get_missing_columns(self) -> Set[str]:
         csv_columns = set(self.csv.columns)
-        db_columns = set(self.db.schema)
+        db_columns = set(self.db.columns)
 
         if self.rules["image_column"] and not self.rules["image_column_keep"]:
             csv_columns -= {self.rules["image_column"]}

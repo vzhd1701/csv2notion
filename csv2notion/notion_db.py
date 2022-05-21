@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import requests
 from notion.client import NotionClient
@@ -11,98 +11,148 @@ from csv2notion.utils_exceptions import NotionError
 from csv2notion.utils_rand_id import rand_id_list, rand_id_unique
 
 
+class CollectionExtended(Collection):
+    def get_rows(self) -> List[CollectionRowBlockExtended]:  # noqa: WPS615
+        return [
+            CollectionRowBlockExtended(row._client, row._id)
+            for row in super().get_rows()
+        ]
+
+    def get_unique_rows(self) -> Dict[str, CollectionRowBlockExtended]:
+        rows: Dict[str, CollectionRowBlockExtended] = {}
+
+        # sort rows so that only first row is kept if multiple have same title
+        sorted_rows = sorted(self.get_rows(), key=lambda r: str(r.title))
+
+        for row in sorted_rows:
+            rows.setdefault(row.title, row)
+        return rows
+
+    def add_row_block(
+        self,
+        update_views: bool = True,
+        row_class: Optional[type] = None,
+        properties: Optional[Dict[str, Any]] = None,
+        columns: Optional[Dict[str, Any]] = None,
+    ) -> CollectionRowBlockExtended:
+        row_class = row_class or CollectionRowBlockExtended
+
+        new_row = super().add_row_block(
+            update_views=update_views,
+            row_class=row_class,
+            properties=properties,
+            columns=columns,
+        )
+
+        return cast(CollectionRowBlockExtended, new_row)
+
+    def add_column(self, column_name: str, column_type: str) -> None:
+        schema_raw = self.get("schema")
+        new_id = rand_id_unique(4, schema_raw)
+        schema_raw[new_id] = {"name": column_name, "type": column_type}
+        self.set("schema", schema_raw)
+
+    def has_duplicates(self) -> bool:
+        row_titles = [row.title for row in self.get_rows()]
+        return len(row_titles) != len(set(row_titles))
+
+    def is_accessible(self) -> bool:
+        rec = self._client.get_record_data("collection", self.id, force_refresh=True)
+        return rec is not None
+
+
 class NotionDB(object):  # noqa: WPS214
-    def __init__(self, client: NotionClient, notion_url: str):
+    def __init__(self, client: NotionClient, collection_id: str):
         self.client = client
+        self.collection = CollectionExtended(self.client, collection_id)
 
-        try:
-            block = self.client.get_block(notion_url, force_refresh=True)
-        except InvalidNotionIdentifier as e:
-            raise NotionError("Invalid URL.") from e
-
-        if block.type != "collection_view_page":
-            raise NotionError("Provided URL links does not point to a Notion database.")
-
-        self.collection = block.collection
-        self.schema = {p["name"]: p for p in self.collection.get_schema_properties()}
-
-        self._cache_relations = {}
-        self._cache_rows = {}
+        self._cache_columns: Dict[str, Dict[str, str]] = {}
+        self._cache_relations: Dict[str, NotionDB] = {}
+        self._cache_rows: Dict[str, CollectionRowBlockExtended] = {}
 
     @property
-    def rows(self):
+    def name(self) -> str:
+        return str(self.collection.name)
+
+    @property
+    def columns(self) -> Dict[str, Dict[str, str]]:
+        if not self._cache_columns:
+            self._cache_columns = {
+                p["name"]: p for p in self.collection.get_schema_properties()
+            }
+
+        return self._cache_columns
+
+    @property
+    def key_column(self) -> str:
+        column_values = self.columns.values()
+        return next(c["name"] for c in column_values if c["type"] == "title")
+
+    @property
+    def rows(self) -> Dict[str, CollectionRowBlockExtended]:
         if not self._cache_rows:
-            self._cache_rows = self._collection_rows(self.collection.id)
+            self._cache_rows = self.collection.get_unique_rows()
 
         return self._cache_rows
 
-    def relation(self, relation_column: str):
-        if not self._cache_relations.get(relation_column):
-            relation = self.schema[relation_column]
-            relation_collection = self._collection(relation["collection_id"])
-            if not relation_collection:
-                raise KeyError
-            self._cache_relations[relation_column] = {
-                "name": self._collection_name(relation["collection_id"]),
-                "rows": self._collection_rows(relation["collection_id"]),
-                "collection": relation_collection,
+    @property
+    def relations(self) -> Dict[str, "NotionDB"]:
+        if not self._cache_relations:
+            relations = [c for c in self.columns.values() if c["type"] == "relation"]
+
+            self._cache_relations = {
+                r["name"]: NotionDB(self.client, r["collection_id"]) for r in relations
             }
 
-        return self._cache_relations[relation_column]
+        return self._cache_relations
 
-    def is_relation_has_duplicates(self, relation_column: str) -> bool:
-        relation = self.schema[relation_column]
-        return self._validate_collection_duplicates(relation["collection_id"])
+    def has_duplicates(self) -> bool:
+        return self.collection.has_duplicates()
 
-    def is_db_has_duplicates(self) -> bool:
-        return self._validate_collection_duplicates(self.collection.id)
+    def is_accessible(self) -> bool:
+        return self.collection.is_accessible()
 
-    def add_column(self, column_name: str, column_type: str):
-        schema_raw = self.collection.get("schema")
-        new_id = rand_id_unique(4, schema_raw)
-        schema_raw[new_id] = {"name": column_name, "type": column_type}
-        self.collection.set("schema", schema_raw)
+    def add_column(self, column_name: str, column_type: str) -> None:
+        self.collection.add_column(column_name, column_type)
 
-        self.schema = {p["name"]: p for p in self.collection.get_schema_properties()}
+        self._cache_columns = {}
         self._cache_rows = {}
 
-    def add_relation_row(self, relation_column: str, key_value: str):
-        relation = self.relation(relation_column)
-        relation["rows"][key_value] = relation["collection"].add_row(title=key_value)
+    def add_row(
+        self,
+        properties: Optional[Dict[str, Any]] = None,
+        columns: Optional[Dict[str, Any]] = None,
+    ) -> CollectionRowBlockExtended:
+        new_row = self.collection.add_row_block(properties=properties, columns=columns)
 
-    def add_row(self, properties=None, columns=None):
-        return self.collection.add_row_block(
-            row_class=CollectionRowBlockExtended, properties=properties, columns=columns
-        )
+        key = columns.get(self.key_column) if columns else None
+        if key:
+            self.rows[key] = new_row
 
-    def _validate_collection_duplicates(self, collection_id: str) -> bool:
-        collection = self._collection(collection_id)
-        row_titles = [row.title for row in collection.get_rows()]
+        return new_row
 
-        return len(row_titles) != len(set(row_titles))
-
-    def _collection_rows(self, collection_id: str) -> dict:
-        collection = self._collection(collection_id)
-        rows = {}
-        for row in sorted(collection.get_rows(), key=lambda r: r.title):
-            row_conv = CollectionRowBlockExtended(row._client, row._id)
-            rows.setdefault(row.title, row_conv)
-        return rows
-
-    def _collection_name(self, collection_id: str) -> str:
-        collection = self._collection(collection_id)
-        return collection.name
-
-    def _collection(self, collection_id: str) -> Collection:
-        return self.client.get_collection(collection_id, force_refresh=True)
+    def add_row_key(self, key: str) -> CollectionRowBlockExtended:
+        return self.add_row(columns={self.key_column: key})
 
 
-def make_new_db_from_csv(
+def get_collection_id(client: NotionClient, notion_url: str) -> str:
+    try:
+        block = client.get_block(notion_url, force_refresh=True)
+    except InvalidNotionIdentifier as e:
+        raise NotionError("Invalid URL.") from e
+
+    if block.type != "collection_view_page":
+        raise NotionError("Provided URL links does not point to a Notion database.")
+
+    return str(block.collection.id)
+
+
+def notion_db_from_csv(
     client: NotionClient,
     page_name: str,
     csv_data: CSVData,
-    skip_columns: List[str] = None,
-) -> str:
+    skip_columns: Optional[List[str]] = None,
+) -> Tuple[str, str]:
     schema = _schema_from_csv(csv_data, skip_columns)
 
     page_id = client.create_record(
@@ -135,10 +185,12 @@ def make_new_db_from_csv(
 
     page.title = page_name
 
-    return page.get_browseable_url()
+    return str(page.get_browseable_url()), page.collection.id
 
 
-def _schema_from_csv(csv_data: CSVData, skip_columns: List[str] = None) -> dict:
+def _schema_from_csv(
+    csv_data: CSVData, skip_columns: Optional[List[str]] = None
+) -> Dict[str, Dict[str, str]]:
     if skip_columns:
         columns = [c for c in csv_data.columns if c not in skip_columns]
     else:
@@ -157,7 +209,7 @@ def _schema_from_csv(csv_data: CSVData, skip_columns: List[str] = None) -> dict:
     return schema
 
 
-def get_notion_client(token: str):
+def get_notion_client(token: str) -> NotionClient:
     try:
         return NotionClient(token_v2=token)
     except requests.exceptions.HTTPError as e:

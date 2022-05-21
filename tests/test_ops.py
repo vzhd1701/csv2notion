@@ -30,6 +30,16 @@ def test_empty_csv(tmp_path):
     with pytest.raises(CriticalError) as e:
         cli("--token", "fake", str(test_file))
 
+    assert "CSV file has no columns" in str(e.value)
+
+
+def test_no_rows_csv(tmp_path):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b,c\n")
+
+    with pytest.raises(CriticalError) as e:
+        cli("--token", "fake", str(test_file))
+
     assert "CSV file is empty" in str(e.value)
 
 

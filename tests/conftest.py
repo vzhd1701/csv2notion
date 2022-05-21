@@ -13,7 +13,7 @@ from testfixtures import LogCapture, ShouldRaise
 
 from csv2notion.cli import cli
 from csv2notion.csv_data import CSVData
-from csv2notion.notion_db import make_new_db_from_csv
+from csv2notion.notion_db import notion_db_from_csv
 from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.utils_rand_id import rand_id
 
@@ -183,7 +183,7 @@ class NotionDBMaker(object):
             patcher.fs.create_file("test.csv", contents=csv_content)
             csv_data = CSVData(Path("test.csv"))
 
-        url = make_new_db_from_csv(
+        url, collection_id = notion_db_from_csv(
             self.client, page_name=self.page_name, csv_data=csv_data
         )
 

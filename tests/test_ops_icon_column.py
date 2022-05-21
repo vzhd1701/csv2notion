@@ -75,7 +75,7 @@ def test_icon_column_empty(tmp_path, db_maker):
     assert test_db.rows[0].columns["a"] == "a"
     assert test_db.rows[0].columns["b"] == "b"
     assert len(test_db.rows[0].children) == 0
-    assert test_db.rows[0].icon == ""
+    assert test_db.rows[0].icon is None
 
 
 @pytest.mark.vcr()

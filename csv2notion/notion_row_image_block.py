@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional, cast
 
 from notion.block import ImageBlock
 from notion.collection import CollectionRowBlock
@@ -11,7 +11,7 @@ from csv2notion.notion_row_upload_file import get_file_id
 class CoverImageBlock(ImageBlock):
     is_cover_block = field_map("properties.is_cover_block")
 
-    def update(self, **attrs):
+    def update(self, **attrs: Any) -> None:
         with self._client.as_atomic_transaction():
             file_id = attrs.pop("file_id", None)
 
@@ -43,9 +43,7 @@ class RowCoverImageBlock(object):  # noqa: WPS214
         return self._image_block
 
     @image_block.setter
-    def image_block(self, image_block):
-        if not isinstance(image_block, CoverImageBlock):
-            image_block = CoverImageBlock(image_block._client, image_block._id)
+    def image_block(self, image_block: CoverImageBlock) -> None:
         self._image_block = image_block
 
     @property
@@ -53,7 +51,9 @@ class RowCoverImageBlock(object):  # noqa: WPS214
         if self.image_block is None:
             return None
 
-        return self.image_block.caption
+        caption = self.image_block.caption
+
+        return str(caption) if caption is not None else None
 
     @caption.setter
     def caption(self, caption: Optional[str]) -> None:
@@ -67,7 +67,7 @@ class RowCoverImageBlock(object):  # noqa: WPS214
         if self.image_block is None:
             return ""
 
-        return self.image_block.source
+        return str(self.image_block.source)
 
     @url.setter
     def url(self, image_url: Optional[str]) -> None:
@@ -89,12 +89,17 @@ class RowCoverImageBlock(object):  # noqa: WPS214
             if self.image_block:
                 self.image_block.update(**attrs)
             else:
-                self.image_block = self.row.children.add_new(ImageBlock, **attrs)
+                self.image_block = self._add_new_image_block(**attrs)
                 self.image_block.move_to(self.row, "first-child")
         else:
-            self.image_block = self.row.children.add_new(ImageBlock, **attrs)
+            self.image_block = self._add_new_image_block(**attrs)
 
         self.image_block.is_cover_block = True
+
+    def _add_new_image_block(self, **attrs: Any) -> CoverImageBlock:
+        image_block = self.row.children.add_new(ImageBlock, **attrs)
+        image_block = CoverImageBlock(image_block._client, image_block._id)
+        return cast(CoverImageBlock, image_block)
 
     def _get_cover_image_block(self) -> Optional[CoverImageBlock]:
         if not self.row.children:
@@ -109,4 +114,4 @@ class RowCoverImageBlock(object):  # noqa: WPS214
         if not image_block.is_cover_block:
             return None
 
-        return image_block
+        return cast(CoverImageBlock, image_block)

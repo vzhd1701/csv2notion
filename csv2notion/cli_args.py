@@ -1,10 +1,10 @@
 import argparse
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Dict, List, Sequence
 
 from csv2notion.notion_convert_map import map_icon
 from csv2notion.utils_exceptions import CriticalError
-from csv2notion.utils_static import ALLOWED_TYPES
+from csv2notion.utils_static import ALLOWED_TYPES, FileType
 from csv2notion.utils_str import split_str
 from csv2notion.version import __version__
 
@@ -14,7 +14,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         prog="csv2notion", description="Import/Merge CSV file into Notion database"
     )
 
-    schema = {
+    schema: Dict[str, Dict[str, Any]] = {
         "csv_file": {
             "type": Path,
             "help": "CSV file to upload",
@@ -224,7 +224,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     return parsed_args
 
 
-def _post_process_args(parsed_args):
+def _post_process_args(parsed_args: argparse.Namespace) -> None:
     if parsed_args.mandatory_column is None:
         parsed_args.mandatory_column = []
 
@@ -240,21 +240,21 @@ def _post_process_args(parsed_args):
         parsed_args.default_icon = _parse_default_icon(parsed_args.default_icon)
 
 
-def _parse_default_icon(default_icon):
-    default_icon = map_icon(default_icon)
-    if isinstance(default_icon, Path):
-        if not default_icon.exists():
-            raise CriticalError(f"File not found: {default_icon}")
-    return default_icon
+def _parse_default_icon(default_icon: str) -> FileType:
+    default_icon_filetype = map_icon(default_icon)
+    if isinstance(default_icon_filetype, Path):
+        if not default_icon_filetype.exists():
+            raise CriticalError(f"File not found: {default_icon_filetype}")
+    return default_icon_filetype
 
 
-def _parse_custom_types(custom_types):
-    custom_types = split_str(custom_types, ",")
-    unknown_types = set(custom_types) - set(ALLOWED_TYPES)
+def _parse_custom_types(custom_types: str) -> List[str]:
+    custom_types_list = split_str(custom_types)
+    unknown_types = set(custom_types_list) - set(ALLOWED_TYPES)
     if unknown_types:
         raise CriticalError(
             "Unknown types: {0}; allowed types: {1}".format(
                 ", ".join(unknown_types), ", ".join(ALLOWED_TYPES)
             )
         )
-    return custom_types
+    return custom_types_list

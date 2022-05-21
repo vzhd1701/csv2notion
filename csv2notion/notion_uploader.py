@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, Dict
 
 from csv2notion.notion_db import NotionDB
 from csv2notion.notion_row import CollectionRowBlockExtended
@@ -6,18 +7,18 @@ from csv2notion.notion_row import CollectionRowBlockExtended
 
 @dataclass
 class NotionUploadRow(object):
-    columns: dict
-    properties: dict
+    columns: Dict[str, Any]
+    properties: Dict[str, Any]
 
-    def key(self):
-        return list(self.columns.values())[0]
+    def key(self) -> str:
+        return str(list(self.columns.values())[0])
 
 
 class NotionRowUploader(object):
     def __init__(self, db: NotionDB):
         self.db = db
 
-    def upload_row(self, row: NotionUploadRow, is_merge: bool):
+    def upload_row(self, row: NotionUploadRow, is_merge: bool) -> None:
         post_properties = _extract_post_properties(row.properties)
 
         db_row = self._get_db_row(row, is_merge)
@@ -41,7 +42,7 @@ class NotionRowUploader(object):
         return cur_row
 
 
-def _extract_post_properties(properties: dict) -> dict:
+def _extract_post_properties(properties: Dict[str, Any]) -> Dict[str, Any]:
     return {
         p: properties.pop(p)
         for p in properties.copy()

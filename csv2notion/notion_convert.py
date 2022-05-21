@@ -1,11 +1,11 @@
 import logging
 from functools import partial
 from pathlib import Path
-from typing import List
+from typing import Any, Callable, Dict, List, Optional
 
 from notion.utils import InvalidNotionIdentifier, extract_id
 
-from csv2notion.csv_data import CSVData
+from csv2notion.csv_data import CSVData, CSVRowType
 from csv2notion.notion_convert_map import (
     map_checkbox,
     map_date,
@@ -14,15 +14,17 @@ from csv2notion.notion_convert_map import (
     map_url_or_file,
 )
 from csv2notion.notion_db import NotionDB
+from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.notion_uploader import NotionUploadRow
 from csv2notion.utils_exceptions import NotionError, TypeConversionError
+from csv2notion.utils_static import FileType
 from csv2notion.utils_str import split_str
 
 logger = logging.getLogger(__name__)
 
 
 class NotionRowConverter(object):  # noqa:  WPS214
-    def __init__(self, db: NotionDB, conversion_rules: dict):
+    def __init__(self, db: NotionDB, conversion_rules: Dict[str, Any]):
         self.db = db
         self.rules = conversion_rules
 
@@ -36,13 +38,13 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return notion_rows
 
-    def _convert_row(self, row: dict) -> NotionUploadRow:
+    def _convert_row(self, row: CSVRowType) -> NotionUploadRow:
         properties = self._map_properties(row)
         columns = self._map_columns(row)
 
         return NotionUploadRow(columns=columns, properties=properties)
 
-    def _map_properties(self, row):
+    def _map_properties(self, row: CSVRowType) -> Dict[str, Any]:
         properties = {}
 
         if self.rules["image_column_mode"] == "block":
@@ -58,11 +60,11 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return {k: v for k, v in properties.items() if v is not None}
 
-    def _map_columns(self, row):
+    def _map_columns(self, row: CSVRowType) -> Dict[str, Any]:
         notion_row = {}
 
         for col_key, col_value in row.items():
-            col_type = self.db.schema[col_key]["type"]
+            col_type = self.db.columns[col_key]["type"]
 
             notion_row[col_key] = self._map_column(col_key, col_value, col_type)
 
@@ -70,8 +72,10 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return notion_row
 
-    def _map_column(self, col_key, col_value, value_type):
-        conversion_map = {
+    def _map_column(
+        self, col_key: str, col_value: str, value_type: str
+    ) -> Optional[Any]:
+        conversion_map: Dict[str, Callable[[str], Any]] = {
             "relation": partial(self._map_relation, col_key),
             "checkbox": map_checkbox,
             "date": map_date,
@@ -92,14 +96,14 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
             raise NotionError(e) from e
 
-    def _pop_column_type(self, row, col_type_to_pop):
+    def _pop_column_type(self, row: CSVRowType, col_type_to_pop: str) -> Optional[Any]:
         """Some column types can't have multiple values (like created_time)
         so we pop them out of the row leaving only the last non-empty one"""
 
         last_col_value = None
 
         for col_key, col_value in list(row.items()):
-            col_type = self.db.schema[col_key]["type"]
+            col_type = self.db.columns[col_key]["type"]
 
             if col_type == col_type_to_pop:
                 result_value = self._map_column(col_key, col_value, col_type)
@@ -113,8 +117,8 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return last_col_value
 
-    def _map_icon(self, row):
-        icon = None
+    def _map_icon(self, row: CSVRowType) -> Optional[FileType]:
+        icon: Optional[FileType] = None
 
         if self.rules["icon_column"]:
             icon = row.get(self.rules["icon_column"], "").strip()
@@ -133,8 +137,8 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return icon
 
-    def _map_image(self, row):
-        image = None
+    def _map_image(self, row: CSVRowType) -> Optional[FileType]:
+        image: Optional[FileType] = None
 
         if self.rules["image_column"]:
             image = row.get(self.rules["image_column"], "").strip()
@@ -150,7 +154,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return image
 
-    def _map_image_caption(self, row):
+    def _map_image_caption(self, row: CSVRowType) -> Optional[str]:
         image_caption = None
 
         if self.rules["image_caption_column"]:
@@ -165,7 +169,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return image_caption
 
-    def _map_file(self, s: str) -> list:
+    def _map_file(self, s: str) -> List[FileType]:
         col_value = split_str(s)
 
         resolved_uris = []
@@ -185,16 +189,14 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return resolved_uris
 
-    def _raise_if_mandatory_empty(self, col_key, col_value):
+    def _raise_if_mandatory_empty(self, col_key: str, col_value: Any) -> None:
         is_mandatory = col_key in self.rules["mandatory_columns"]
 
         if is_mandatory and not col_value:
             raise NotionError(f"Mandatory column '{col_key}' is empty")
 
-    def _relative_path(self, path):
+    def _relative_path(self, path: Path) -> Path:
         search_path = self.rules["files_search_path"]
-
-        path = Path(path)
 
         if not path.is_absolute():
             path = search_path / path
@@ -204,11 +206,13 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return path
 
-    def _map_relation(self, relation_column, col_value):
-        col_value = split_str(col_value)
+    def _map_relation(
+        self, relation_column: str, col_value: str
+    ) -> List[CollectionRowBlockExtended]:
+        col_values = split_str(col_value)
 
         resolved_relations = []
-        for v in col_value:
+        for v in col_values:
             if v.startswith("https://www.notion.so/"):
                 resolved_relation = self._resolve_relation_by_url(relation_column, v)
             else:
@@ -219,29 +223,34 @@ class NotionRowConverter(object):  # noqa:  WPS214
 
         return resolved_relations
 
-    def _resolve_relation_by_key(self, relation_column, key):
-        relation = self.db.relation(relation_column)
+    def _resolve_relation_by_key(
+        self, relation_column: str, key: str
+    ) -> Optional[CollectionRowBlockExtended]:
+        relation = self.db.relations[relation_column]
 
         try:
-            return relation["rows"][key]
+            return relation.rows[key]
         except KeyError:
             if self.rules["missing_relations_action"] == "add":
-                self.db.add_relation_row(relation_column, key)
-                return relation["rows"][key]
+                return relation.add_row_key(key)
             elif self.rules["missing_relations_action"] == "fail":
                 raise NotionError(
                     f"Value '{key}' for relation"
-                    f" '{relation_column} [column] -> {relation['name']} [DB]'"
+                    f" '{relation_column} [column] -> {relation.name} [DB]'"
                     f" is not a valid value."
                 )
 
             return None
 
-    def _resolve_relation_by_url(self, relation_column, url):
+    def _resolve_relation_by_url(
+        self, relation_column: str, url: str
+    ) -> Optional[CollectionRowBlockExtended]:
         block_id = self._extract_id(url)
+        if block_id is None:
+            return None
 
-        relation = self.db.relation(relation_column)
-        relation_rows = relation["rows"].values()
+        relation = self.db.relations[relation_column]
+        relation_rows = relation.rows.values()
 
         try:
             return next(r for r in relation_rows if r.id == block_id)
@@ -249,14 +258,14 @@ class NotionRowConverter(object):  # noqa:  WPS214
             if self.rules["missing_relations_action"] in {"add", "fail"}:
                 raise NotionError(
                     f"Row with url '{url}' not found in relation"
-                    f" '{relation_column} [column] -> {relation['name']} [DB]'."
+                    f" '{relation_column} [column] -> {relation.name} [DB]'."
                 )
 
             return None
 
-    def _extract_id(self, url):
+    def _extract_id(self, url: str) -> Optional[str]:
         try:
-            return extract_id(url)
+            return str(extract_id(url))
         except InvalidNotionIdentifier:
             if self.rules["missing_relations_action"] == "ignore":
                 return None

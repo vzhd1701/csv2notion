@@ -1,7 +1,7 @@
 from datetime import datetime
 from itertools import starmap
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from cached_property import cached_property
 from notion.collection import CollectionRowBlock
@@ -10,8 +10,10 @@ from notion.operations import build_operation
 from notion.utils import remove_signed_prefix_as_needed
 
 from csv2notion.notion_row_image_block import RowCoverImageBlock
-from csv2notion.notion_row_upload_file import is_meta_different, upload_filetype
+from csv2notion.notion_row_upload_file import Meta, is_meta_different, upload_filetype
 from csv2notion.utils_static import FileType
+
+NamedURLs = Dict[str, str]
 
 
 class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
@@ -19,64 +21,73 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
     cover_meta = field_map("properties.meta.cover")
     cover_block_meta = field_map("properties.meta.cover_block")
 
-    @cached_property
+    @cached_property  # type: ignore
     def image_block(self) -> RowCoverImageBlock:
         return RowCoverImageBlock(self)
 
     @property
     def icon(self) -> str:
-        return super().icon
+        return super().icon  # type: ignore
 
     @icon.setter
     def icon(self, icon: FileType) -> None:
-        if not self._is_meta_changed(icon, self.icon, "icon_meta"):
+        new_icon: Optional[FileType] = icon if icon else None
+
+        if not self._is_meta_changed("icon_meta", new_icon, self.icon):
             return
 
-        icon, icon_meta = upload_filetype(self, icon)
+        if new_icon is None:
+            icon_meta = None
+        else:
+            new_icon, icon_meta = upload_filetype(self, new_icon)
 
         self.icon_meta = icon_meta
-        CollectionRowBlock.icon.fset(self, icon)
+        CollectionRowBlock.icon.fset(self, new_icon)
 
     @property
     def cover(self) -> Optional[str]:
-        return super().cover
+        return super().cover  # type: ignore
 
     @cover.setter
     def cover(self, image: FileType) -> None:
-        if image == "":
-            image = None
+        new_image: Optional[FileType] = image if image else None
 
-        if not self._is_meta_changed(image, self.cover, "cover_meta"):
+        if not self._is_meta_changed("cover_meta", new_image, self.cover):
             return
 
-        image, cover_meta = upload_filetype(self, image)
+        if new_image is None:
+            cover_meta = None
+        else:
+            new_image, cover_meta = upload_filetype(self, new_image)
 
         self.cover_meta = cover_meta
-        CollectionRowBlock.cover.fset(self, image)
+        CollectionRowBlock.cover.fset(self, new_image)
 
     @property
     def cover_block(self) -> Optional[str]:
-        return self.image_block.url
+        return self.image_block.url  # type: ignore
 
     @cover_block.setter
     def cover_block(self, image: FileType) -> None:
         if self._client.in_transaction():
             raise RuntimeError("Cannot set cover_block during atomic transaction")
 
-        if image == "":
-            image = None
+        new_image: Optional[FileType] = image if image else None
 
-        if not self._is_meta_changed(image, self.cover_block, "cover_block_meta"):
+        if not self._is_meta_changed("cover_block_meta", new_image, self.cover_block):
             return
 
-        image, cover_block_meta = upload_filetype(self, image)
+        if new_image is None:
+            cover_block_meta = None
+        else:
+            new_image, cover_block_meta = upload_filetype(self, new_image)
 
         self.cover_block_meta = cover_block_meta
-        self.image_block.url = image
+        self.image_block.url = new_image
 
     @property
     def cover_block_caption(self) -> Optional[str]:
-        return self.image_block.caption
+        return self.image_block.caption  # type: ignore
 
     @cover_block_caption.setter
     def cover_block_caption(self, caption: Optional[str]) -> None:
@@ -114,7 +125,7 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
             update_last_edited=False,
         )
 
-    def set_property(self, identifier, new_value):
+    def set_property(self, identifier: str, new_value: Any) -> None:
         prop = self.collection.get_schema_property(identifier)
         if prop is None:
             raise AttributeError(f"Object does not have property '{identifier}'")
@@ -139,7 +150,9 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
 
         self.set(path, new_value)
 
-    def _convert_python_to_notion(self, raw_value, prop, identifier="<unknown>"):
+    def _convert_python_to_notion(
+        self, raw_value: Any, prop: Dict[str, str], identifier: str = "<unknown>"
+    ) -> Any:
         if prop["type"] == "file" and isinstance(raw_value, dict):
             filelist = []
             for filename, url in raw_value.items():
@@ -151,18 +164,18 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
 
         return super()._convert_python_to_notion(raw_value, prop, identifier)
 
-    def _upload_column_files(
-        self, column_id: str, files: List[FileType]
-    ) -> Dict[str, str]:
+    def _upload_column_files(self, column_id: str, files: List[FileType]) -> NamedURLs:
         column_files_meta, column_files_urls = self._process_column_files(files)
 
         self.set(f"properties.meta.file_columns.{column_id}", column_files_meta)
 
         return column_files_urls
 
-    def _process_column_files(self, files: List[FileType]) -> Tuple[list, dict]:
-        column_files_meta = []
-        column_files_urls = {}
+    def _process_column_files(
+        self, files: List[FileType]
+    ) -> Tuple[List[Meta], NamedURLs]:
+        column_files_meta: List[Meta] = []
+        column_files_urls: NamedURLs = {}
 
         for filetype in files:
             file_url, file_meta = upload_filetype(self, filetype)
@@ -172,7 +185,7 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
 
         return column_files_meta, column_files_urls
 
-    def _is_file_column_changed(self, column_id: str, files: List[FileType]):
+    def _is_file_column_changed(self, column_id: str, files: List[FileType]) -> bool:
         files_meta = self.get(f"properties.meta.file_columns.{column_id}")
         files_url = self.get_property(column_id)
 
@@ -190,9 +203,9 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
 
     def _is_meta_changed(
         self,
+        meta_parameter: str,
         new_val: Optional[FileType],
         current_val: Optional[str],
-        meta_parameter: str,
     ) -> bool:
         if (current_val is None or new_val is None) and current_val != new_val:
             return True
