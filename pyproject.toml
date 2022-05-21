@@ -37,6 +37,9 @@ python-dateutil = "^2.8.2"
 tqdm = "^4.64.0"
 emoji = "^1.7.0"
 notion-vzhd1701-fork = "0.0.32"
+types-requests = "^2.27.27"
+types-python-dateutil = "^2.8.16"
+types-emoji = "^1.2.8"
 
 [tool.poetry.dev-dependencies]
 mdformat = "0.7.7"
@@ -52,6 +55,7 @@ wemake-python-styleguide = "^0.16.1"
 flakehell = "^0.9.0"
 flake8 = "3.9.0"
 safety = "^1.10.3"
+mypy = "^0.950"
 
 [tool.flakehell]
 base = "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/flakehell.toml"
@@ -120,3 +124,26 @@ skip_gitignore = true
         '*/tests/*',
         '*/notion/*',
     ]
+
+[tool.mypy]
+files = "csv2notion"
+
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+#disallow_any_explicit = true
+disallow_any_generics = true
+
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+
+check_untyped_defs = true
+ignore_missing_imports = true
+implicit_reexport = false
+local_partial_types = true
+strict_equality = true
+no_implicit_optional = true

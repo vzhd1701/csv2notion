@@ -49,6 +49,15 @@ repos:
         files: pyproject.toml
         pass_filenames: false
 
+    -   id: mypy
+        name: mypy
+        stages: [commit]
+        language: system
+        entry: poetry run mypy
+        types: [python]
+        require_serial: true
+        pass_filenames: false
+
     -   id: pytest
         name: pytest
         stages: [commit]
