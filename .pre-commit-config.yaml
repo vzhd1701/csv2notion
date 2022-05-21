@@ -41,6 +41,14 @@ repos:
         entry: poetry run mdformat
         types: [markdown]
 
+    -   id: safety
+        name: safety
+        stages: [commit]
+        language: system
+        entry: poetry run safety check
+        files: pyproject.toml
+        pass_filenames: false
+
     -   id: pytest
         name: pytest
         stages: [commit]
