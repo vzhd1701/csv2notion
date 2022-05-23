@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 import requests
 from notion.client import NotionClient
 from notion.collection import Collection
+from notion.user import User
 from notion.utils import InvalidNotionIdentifier
 
 from csv2notion.csv_data import CSVData
@@ -69,6 +70,7 @@ class NotionDB(object):  # noqa: WPS214
         self._cache_columns: Dict[str, Dict[str, str]] = {}
         self._cache_relations: Dict[str, NotionDB] = {}
         self._cache_rows: Dict[str, CollectionRowBlockExtended] = {}
+        self._cache_users: Dict[str, User] = {}
 
     @property
     def name(self) -> str:
@@ -105,6 +107,30 @@ class NotionDB(object):  # noqa: WPS214
             }
 
         return self._cache_relations
+
+    @property
+    def users(self) -> Dict[str, User]:
+        if not self._cache_users:
+            self._cache_users = {u.email: u for u in self.client.current_space.users}
+
+        return self._cache_users
+
+    def get_user_by_name(self, name: str) -> Optional[User]:
+        return next((u for u in self.users.values() if u.name == name), None)
+
+    def find_user(self, email: str) -> Optional[User]:
+        res = self.client.post("findUser", {"email": email}).json()
+
+        try:
+            user_id = res["value"]["value"]["id"]
+        except KeyError:
+            return None
+
+        found_user = User(self.client, user_id)
+
+        self.users[found_user.email] = found_user
+
+        return found_user
 
     def has_duplicates(self) -> bool:
         return self.collection.has_duplicates()

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from notion.client import NotionClient
+from notion.user import User
 from pyfakefs.fake_filesystem_unittest import Patcher
 from testfixtures import LogCapture, ShouldRaise
 
@@ -216,6 +217,16 @@ class NotionDBMaker(object):
         self.from_url(url)
 
         return e
+
+    def find_user(self, email: str):
+        res = self.client.post("findUser", {"email": email}).json()
+
+        try:
+            user_id = res["value"]["value"]["id"]
+        except KeyError:
+            return None
+
+        return User(self.client, user_id)
 
     def cleanup(self):
         for db in self.databases:

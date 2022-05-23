@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from notion.user import User
 from notion.utils import InvalidNotionIdentifier, extract_id
 
 from csv2notion.csv_data import CSVData, CSVRowType
@@ -15,6 +16,7 @@ from csv2notion.notion_convert_map import (
 )
 from csv2notion.notion_db import NotionDB
 from csv2notion.notion_row import CollectionRowBlockExtended
+from csv2notion.notion_type_guess import is_email
 from csv2notion.notion_uploader import NotionUploadRow
 from csv2notion.utils_exceptions import NotionError, TypeConversionError
 from csv2notion.utils_static import FileType
@@ -97,6 +99,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
             "multi_select": split_str,
             "number": map_number,
             "file": self._map_file,
+            "person": self._map_person,
         }
 
         try:
@@ -290,6 +293,28 @@ class NotionRowConverter(object):  # noqa:  WPS214
             self._error(f"'{url}' is not a valid Notion URL.")
 
             return None
+
+    def _map_person(self, col_value: str) -> List[User]:
+        col_values = split_str(col_value)
+
+        resolved_persons = []
+        for v in col_values:
+            if is_email(v):
+                resolved_person = self.db.users.get(v)
+
+                if not resolved_person:
+                    resolved_person = self.db.find_user(v)
+            else:
+                resolved_person = self.db.get_user_by_name(v)
+
+            if resolved_person is None:
+                self._error(f"Person '{v}' cannot be resolved.")
+                continue
+
+            if resolved_person not in resolved_persons:
+                resolved_persons.append(resolved_person)
+
+        return resolved_persons
 
 
 def _is_banned_extension(file_path: Path) -> bool:

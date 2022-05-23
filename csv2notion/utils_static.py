@@ -19,6 +19,7 @@ ALLOWED_TYPES = frozenset(
         "rollup",
         "formula",
         "file",
+        "person",
     )
 )
 
