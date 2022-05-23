@@ -1,9 +1,7 @@
 import logging
-import re
 
 import pytest
 
-from csv2notion.cli import cli
 from csv2notion.utils_exceptions import NotionError
 
 
@@ -33,23 +31,102 @@ def test_custom_types_file_empty(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_banned(tmp_path, db_maker):
+def test_custom_types_file_not_found(tmp_path, db_maker, caplog):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text("a,b\na,missing.txt")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        test_db = db_maker.from_cli(
+            "--token",
+            db_maker.token,
+            "--custom-types",
+            "file",
+            str(test_file),
+        )
+
+    assert test_db.schema_dict["b"]["type"] == "file"
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == []
+
+    assert "File missing.txt does not exist" in caplog.text
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_custom_types_file_not_found_fail(tmp_path, db_maker, caplog):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text("a,b\na,missing.txt")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        e = db_maker.from_raising_cli(
+            "--token",
+            db_maker.token,
+            "--custom-types",
+            "file",
+            "--fail-on-conversion-error",
+            str(test_file),
+        )
+
+    assert isinstance(e.raised, NotionError)
+    assert "Error during conversion" in str(e.raised)
+    assert "File missing.txt does not exist" in caplog.text
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_custom_types_file_banned(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,banned.exe")
 
     banned_file = tmp_path / "banned.exe"
     banned_file.touch()
 
-    e = db_maker.from_raising_cli(
-        "--token",
-        db_maker.token,
-        "--custom-types",
-        "file",
-        str(test_file),
-    )
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        test_db = db_maker.from_cli(
+            "--token",
+            db_maker.token,
+            "--custom-types",
+            "file",
+            str(test_file),
+        )
+
+    assert test_db.schema_dict["b"]["type"] == "file"
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == []
+
+    assert "File extension '*.exe' is not allowed to upload on Notion" in caplog.text
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_custom_types_file_banned_fail(tmp_path, db_maker, caplog):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text("a,b\na,banned.exe")
+
+    banned_file = tmp_path / "banned.exe"
+    banned_file.touch()
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        e = db_maker.from_raising_cli(
+            "--token",
+            db_maker.token,
+            "--custom-types",
+            "file",
+            "--fail-on-conversion-error",
+            str(test_file),
+        )
 
     assert isinstance(e.raised, NotionError)
-    assert "File extension '*.exe' is not allowed to upload on Notion." in str(e.raised)
+    assert "Error during conversion" in str(e.raised)
+    assert "File extension '*.exe' is not allowed to upload on Notion" in caplog.text
 
 
 @pytest.mark.vcr()

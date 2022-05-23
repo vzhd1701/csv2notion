@@ -32,24 +32,47 @@ def test_icon_column_missing(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_icon_column_file_not_found(tmp_path, db_maker):
+def test_icon_column_file_not_found(tmp_path, db_maker, caplog):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,icon file\na,b,test_image.jpg\n")
 
-    test_db = db_maker.from_csv_head("a,b,icon file")
-
-    with pytest.raises(NotionError) as e:
-        cli(
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--url",
-            test_db.url,
             "--icon-column",
             "icon file",
             str(test_file),
         )
 
-    assert "test_image.jpg does not exist" in str(e.value)
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+    assert len(test_db.rows[0].children) == 0
+    assert test_db.rows[0].icon is None
+
+    assert "test_image.jpg does not exist" in caplog.text
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_icon_column_file_not_found_fail(tmp_path, db_maker, caplog):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b,icon file\na,b,test_image.jpg\n")
+
+    with caplog.at_level(logging.INFO, logger="csv2notion"):
+        e = db_maker.from_raising_cli(
+            "--token",
+            db_maker.token,
+            "--icon-column",
+            "icon file",
+            "--fail-on-conversion-error",
+            str(test_file),
+        )
+
+    assert "Error during conversion" in str(e.raised)
+    assert "test_image.jpg does not exist" in caplog.text
 
 
 @pytest.mark.vcr()

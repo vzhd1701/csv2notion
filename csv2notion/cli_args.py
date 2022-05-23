@@ -108,13 +108,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                 " [add] them to Notion DB, [ignore] them or [fail] (default: ignore)"
             ),
         },
-        "--missing-relations-action": {
-            "choices": ["add", "ignore", "fail"],
-            "default": "ignore",
-            "help": (
-                "if entries are missing from linked Notion DB,"
-                " [add] them to Notion DB, [ignore] them or [fail] (default: ignore)"
-            ),
+        "--add-missing-relations": {
+            "action": "store_true",
+            "default": False,
+            "help": "add missing entries into linked Notion DB",
         },
         "--fail-on-relation-duplicates": {
             "action": "store_true",

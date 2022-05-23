@@ -28,15 +28,28 @@ class NotionRowConverter(object):  # noqa:  WPS214
         self.db = db
         self.rules = conversion_rules
 
+        self._current_row = 0
+
     def convert_to_notion_rows(self, csv_data: CSVData) -> List[NotionUploadRow]:
         notion_rows = []
-        for i, row in enumerate(csv_data, 2):
+
+        # starting with 2nd row, because first is header
+        self._current_row = 2
+
+        for row in csv_data:
             try:
                 notion_rows.append(self._convert_row(row))
             except NotionError as e:
-                raise NotionError(f"CSV [{i}]: {e}")
+                raise NotionError(f"CSV [{self._current_row}]: {e}")
+            self._current_row += 1
 
         return notion_rows
+
+    def _error(self, error: str) -> None:
+        logger.error(f"CSV [{self._current_row}]: {error}")
+
+        if self.rules["fail_on_conversion_error"]:
+            raise NotionError(f"Error during conversion.")
 
     def _convert_row(self, row: CSVRowType) -> NotionUploadRow:
         properties = self._map_properties(row)
@@ -91,10 +104,11 @@ class NotionRowConverter(object):  # noqa:  WPS214
         except KeyError:
             return col_value
         except TypeConversionError as e:
-            if col_value == "" or not self.rules["fail_on_conversion_error"]:
+            if not col_value.strip():
                 return None
 
-            raise NotionError(e) from e
+            self._error(str(e))
+            return None
 
     def _pop_column_type(self, row: CSVRowType, col_type_to_pop: str) -> Optional[Any]:
         """Some column types can't have multiple values (like created_time)
@@ -175,14 +189,20 @@ class NotionRowConverter(object):  # noqa:  WPS214
         resolved_uris = []
         for v in col_value:
             file_uri = map_url_or_file(v)
+
             if isinstance(file_uri, Path):
-                file_uri = self._relative_path(file_uri)
+                rel_file_uri = self._relative_path(file_uri)
+                if rel_file_uri is None:
+                    continue
+
+                file_uri = rel_file_uri
 
                 if _is_banned_extension(file_uri):
-                    raise NotionError(
+                    self._error(
                         f"File extension '*{file_uri.suffix}' is not allowed"
                         f" to upload on Notion."
                     )
+                    continue
 
             if file_uri not in resolved_uris:
                 resolved_uris.append(file_uri)
@@ -195,14 +215,15 @@ class NotionRowConverter(object):  # noqa:  WPS214
         if is_mandatory and not col_value:
             raise NotionError(f"Mandatory column '{col_key}' is empty")
 
-    def _relative_path(self, path: Path) -> Path:
+    def _relative_path(self, path: Path) -> Optional[Path]:
         search_path = self.rules["files_search_path"]
 
         if not path.is_absolute():
             path = search_path / path
 
         if not path.exists():
-            raise NotionError(f"File {path.name} does not exist")
+            self._error(f"File {path.name} does not exist.")
+            return None
 
         return path
 
@@ -231,14 +252,14 @@ class NotionRowConverter(object):  # noqa:  WPS214
         try:
             return relation.rows[key]
         except KeyError:
-            if self.rules["missing_relations_action"] == "add":
+            if self.rules["add_missing_relations"]:
                 return relation.add_row_key(key)
-            elif self.rules["missing_relations_action"] == "fail":
-                raise NotionError(
-                    f"Value '{key}' for relation"
-                    f" '{relation_column} [column] -> {relation.name} [DB]'"
-                    f" is not a valid value."
-                )
+
+            self._error(
+                f"Value '{key}' for relation"
+                f" '{relation_column} [column] -> {relation.name} [DB]'"
+                f" is not a valid value."
+            )
 
             return None
 
@@ -255,11 +276,10 @@ class NotionRowConverter(object):  # noqa:  WPS214
         try:
             return next(r for r in relation_rows if r.id == block_id)
         except StopIteration:
-            if self.rules["missing_relations_action"] in {"add", "fail"}:
-                raise NotionError(
-                    f"Row with url '{url}' not found in relation"
-                    f" '{relation_column} [column] -> {relation.name} [DB]'."
-                )
+            self._error(
+                f"Row with url '{url}' not found in relation"
+                f" '{relation_column} [column] -> {relation.name} [DB]'."
+            )
 
             return None
 
@@ -267,9 +287,9 @@ class NotionRowConverter(object):  # noqa:  WPS214
         try:
             return str(extract_id(url))
         except InvalidNotionIdentifier:
-            if self.rules["missing_relations_action"] == "ignore":
-                return None
-            raise NotionError(f"'{url}' is not a valid Notion URL.")
+            self._error(f"'{url}' is not a valid Notion URL.")
+
+            return None
 
 
 def _is_banned_extension(file_path: Path) -> bool:

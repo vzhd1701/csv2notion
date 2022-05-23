@@ -59,7 +59,7 @@ def convert_csv_to_notion_rows(
         "merge_only_columns": args.merge_only_column,
         "merge_skip_new": args.merge_skip_new,
         "missing_columns_action": args.missing_columns_action,
-        "missing_relations_action": args.missing_relations_action,
+        "add_missing_relations": args.add_missing_relations,
         "fail_on_relation_duplicates": args.fail_on_relation_duplicates,
         "fail_on_duplicates": args.fail_on_duplicates,
         "fail_on_conversion_error": args.fail_on_conversion_error,

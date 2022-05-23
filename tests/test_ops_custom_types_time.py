@@ -1,11 +1,7 @@
 import datetime
-import logging
-import re
 
 import pytest
 from dateutil.tz import tz
-
-from csv2notion.cli import cli
 
 
 @pytest.mark.vcr()
