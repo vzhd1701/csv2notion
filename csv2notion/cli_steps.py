@@ -58,12 +58,13 @@ def convert_csv_to_notion_rows(
         "is_merge": args.merge,
         "merge_only_columns": args.merge_only_column,
         "merge_skip_new": args.merge_skip_new,
-        "missing_columns_action": args.missing_columns_action,
+        "add_missing_columns": args.add_missing_columns,
         "add_missing_relations": args.add_missing_relations,
         "fail_on_relation_duplicates": args.fail_on_relation_duplicates,
         "fail_on_duplicates": args.fail_on_duplicates,
         "fail_on_conversion_error": args.fail_on_conversion_error,
         "fail_on_inaccessible_relations": args.fail_on_inaccessible_relations,
+        "fail_on_missing_columns": args.fail_on_missing_columns,
         "fail_on_unsupported_columns": args.fail_on_unsupported_columns,
     }
 

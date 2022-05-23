@@ -100,12 +100,12 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             ),
             "metavar": "ICON",
         },
-        "--missing-columns-action": {
-            "choices": ["add", "ignore", "fail"],
-            "default": "ignore",
+        "--add-missing-columns": {
+            "action": "store_true",
+            "default": False,
             "help": (
                 "if columns are present in CSV but not in Notion DB,"
-                " [add] them to Notion DB, [ignore] them or [fail] (default: ignore)"
+                " add them to Notion DB"
             ),
         },
         "--add-missing-relations": {
@@ -154,6 +154,14 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                 " otherwise those columns will be ignored"
             ),
         },
+        "--fail-on-missing-columns": {
+            "action": "store_true",
+            "default": False,
+            "help": (
+                "fail if columns are present in CSV but not in Notion DB;"
+                " otherwise those columns will be ignored"
+            ),
+        },
         "--fail-on-unsupported-columns": {
             "action": "store_true",
             "default": False,
@@ -176,7 +184,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             "help": (
                 "CSV column that should be updated on merge;"
                 " when provided, other columns will be ignored"
-                " (define multiple times for multiple columns)"
+                " (use multiple times for multiple columns)"
             ),
             "metavar": "COLUMN",
         },
@@ -191,7 +199,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             "action": "append",
             "help": (
                 "CSV column that cannot be empty"
-                " (define multiple times for multiple columns)"
+                " (use multiple times for multiple columns)"
             ),
             "metavar": "COLUMN",
         },

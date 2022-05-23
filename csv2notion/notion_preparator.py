@@ -95,10 +95,10 @@ class NotionPreparator(object):  # noqa: WPS214
         if missing_columns:
             warn_text = f"CSV columns missing from Notion DB: {missing_columns}"
 
-            if self.rules["missing_columns_action"] == "add":
+            if self.rules["add_missing_columns"]:
                 logger.info(f"Adding missing columns to the DB: {missing_columns}")
                 self._add_columns(missing_columns)
-            elif self.rules["missing_columns_action"] == "fail":
+            elif self.rules["fail_on_missing_columns"]:
                 raise NotionError(warn_text)
             else:
                 logger.warning(warn_text)

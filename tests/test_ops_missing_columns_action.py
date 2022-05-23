@@ -20,8 +20,7 @@ def test_missing_columns_action_fail(tmp_path, db_maker):
             db_maker.token,
             "--url",
             test_db.url,
-            "--missing-columns-action",
-            "fail",
+            "--fail-on-missing-columns",
             str(test_file),
         )
 
@@ -42,8 +41,6 @@ def test_missing_columns_action_ignore(tmp_path, db_maker, caplog):
             db_maker.token,
             "--url",
             test_db.url,
-            "--missing-columns-action",
-            "ignore",
             str(test_file),
         )
 
@@ -68,8 +65,7 @@ def test_missing_columns_action_add(tmp_path, db_maker, caplog):
             db_maker.token,
             "--url",
             test_db.url,
-            "--missing-columns-action",
-            "add",
+            "--add-missing-columns",
             str(test_file),
         )
 
