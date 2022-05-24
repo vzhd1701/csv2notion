@@ -51,7 +51,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
         logger.error(f"CSV [{self._current_row}]: {error}")
 
         if self.rules["fail_on_conversion_error"]:
-            raise NotionError(f"Error during conversion.")
+            raise NotionError("Error during conversion.")
 
     def _convert_row(self, row: CSVRowType) -> NotionUploadRow:
         properties = self._map_properties(row)
@@ -194,29 +194,31 @@ class NotionRowConverter(object):  # noqa:  WPS214
             file_uri = map_url_or_file(v)
 
             if isinstance(file_uri, Path):
-                rel_file_uri = self._relative_path(file_uri)
+                rel_file_uri = self._ensure_path(file_uri)
+
                 if rel_file_uri is None:
                     continue
 
                 file_uri = rel_file_uri
-
-                if _is_banned_extension(file_uri):
-                    self._error(
-                        f"File extension '*{file_uri.suffix}' is not allowed"
-                        f" to upload on Notion."
-                    )
-                    continue
 
             if file_uri not in resolved_uris:
                 resolved_uris.append(file_uri)
 
         return resolved_uris
 
-    def _raise_if_mandatory_empty(self, col_key: str, col_value: Any) -> None:
-        is_mandatory = col_key in self.rules["mandatory_columns"]
+    def _ensure_path(self, path: Path) -> Optional[Path]:
+        ensured_path = self._relative_path(path)
+        if ensured_path is None:
+            return None
 
-        if is_mandatory and not col_value:
-            raise NotionError(f"Mandatory column '{col_key}' is empty")
+        if _is_banned_extension(ensured_path):
+            self._error(
+                f"File extension '*{ensured_path.suffix}' is not allowed"
+                f" to upload on Notion."
+            )
+            return None
+
+        return ensured_path
 
     def _relative_path(self, path: Path) -> Optional[Path]:
         search_path = self.rules["files_search_path"]
@@ -315,6 +317,12 @@ class NotionRowConverter(object):  # noqa:  WPS214
                 resolved_persons.append(resolved_person)
 
         return resolved_persons
+
+    def _raise_if_mandatory_empty(self, col_key: str, col_value: Any) -> None:
+        is_mandatory = col_key in self.rules["mandatory_columns"]
+
+        if is_mandatory and not col_value:
+            raise NotionError(f"Mandatory column '{col_key}' is empty")
 
 
 def _is_banned_extension(file_path: Path) -> bool:

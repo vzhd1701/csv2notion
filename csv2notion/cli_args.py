@@ -8,6 +8,11 @@ from csv2notion.utils_static import ALLOWED_TYPES, FileType
 from csv2notion.utils_str import split_str
 from csv2notion.version import __version__
 
+ArgToken = Union[str, Tuple[str, str]]
+ArgOption = Dict[str, Any]
+ArgSchema = Dict[str, Dict[ArgToken, ArgOption]]
+HELP_ARGS_WIDTH = 50
+
 
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -16,11 +21,11 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         usage="%(prog)s [-h] --token TOKEN [--url URL] [OPTION]... FILE",
         add_help=False,
         formatter_class=lambda prog: argparse.RawTextHelpFormatter(
-            prog, max_help_position=50
+            prog, max_help_position=HELP_ARGS_WIDTH
         ),
     )
 
-    schema: Dict[str, Dict[Union[str, Tuple[str, str]], Any]] = {
+    schema: ArgSchema = {
         "POSITIONAL": {
             "csv_file": {
                 "type": Path,
@@ -68,7 +73,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         "column options": {
             "--column-types": {
                 "help": (
-                    "comma-separated list of custom types to use for non-key columns;"
+                    "comma-separated list of column types to use for non-key columns;"
                     "\nif none is provided, types will be guessed from CSV values"
                     "\n(can also be used with --add-missing-columns flag)"
                 ),
@@ -245,9 +250,21 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         },
     }
 
-    for group_name, group_args in schema.items():
-        group: argparse._ActionsContainer
+    _parse_schema(parser, schema)
 
+    parsed_args = parser.parse_args(argv)
+
+    _post_process_args(parsed_args)
+
+    return parsed_args
+
+
+def _parse_schema(  # noqa: WPS210
+    parser: argparse.ArgumentParser, schema: ArgSchema
+) -> None:
+    group: argparse._ActionsContainer
+
+    for group_name, group_args in schema.items():
         if group_name == "POSITIONAL":
             group = parser
         else:
@@ -256,12 +273,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         for arg, arg_params in group_args.items():
             opt_arg = [arg] if isinstance(arg, str) else arg
             group.add_argument(*opt_arg, **arg_params)
-
-    parsed_args = parser.parse_args(argv)
-
-    _post_process_args(parsed_args)
-
-    return parsed_args
 
 
 def _post_process_args(parsed_args: argparse.Namespace) -> None:

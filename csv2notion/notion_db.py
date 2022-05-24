@@ -116,7 +116,8 @@ class NotionDB(object):  # noqa: WPS214
         return self._cache_users
 
     def get_user_by_name(self, name: str) -> Optional[User]:
-        return next((u for u in self.users.values() if u.name == name), None)
+        name_match = (u for u in self.users.values() if u.name == name)
+        return next(name_match, None)
 
     def find_user(self, email: str) -> Optional[User]:
         res = self.client.post("findUser", {"email": email}).json()
