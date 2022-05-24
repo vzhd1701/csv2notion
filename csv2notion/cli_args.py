@@ -65,12 +65,12 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                 "help": "show this help message and exit",
             },
         },
-        "columns options": {
-            "--custom-types": {
+        "column options": {
+            "--column-types": {
                 "help": (
                     "comma-separated list of custom types to use for non-key columns;"
                     "\nif none is provided, types will be guessed from CSV values"
-                    "\n(can also used with --add-missing-columns flag)"
+                    "\n(can also be used with --add-missing-columns flag)"
                 ),
                 "metavar": "TYPES",
             },
@@ -83,7 +83,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                 ),
             },
         },
-        "merging options": {
+        "merge options": {
             "--merge": {
                 "action": "store_true",
                 "default": False,
@@ -273,8 +273,8 @@ def _post_process_args(parsed_args: argparse.Namespace) -> None:
 
     parsed_args.max_threads = max(parsed_args.max_threads, 1)
 
-    if parsed_args.custom_types:
-        parsed_args.custom_types = _parse_custom_types(parsed_args.custom_types)
+    if parsed_args.column_types:
+        parsed_args.column_types = _parse_column_types(parsed_args.column_types)
 
     if parsed_args.default_icon:
         parsed_args.default_icon = _parse_default_icon(parsed_args.default_icon)
@@ -288,13 +288,13 @@ def _parse_default_icon(default_icon: str) -> FileType:
     return default_icon_filetype
 
 
-def _parse_custom_types(custom_types: str) -> List[str]:
-    custom_types_list = split_str(custom_types)
-    unknown_types = set(custom_types_list) - set(ALLOWED_TYPES)
+def _parse_column_types(column_types: str) -> List[str]:
+    column_types_list = split_str(column_types)
+    unknown_types = set(column_types_list) - set(ALLOWED_TYPES)
     if unknown_types:
         raise CriticalError(
             "Unknown types: {0}; allowed types: {1}".format(
                 ", ".join(unknown_types), ", ".join(ALLOWED_TYPES)
             )
         )
-    return custom_types_list
+    return column_types_list

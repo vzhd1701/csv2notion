@@ -57,7 +57,7 @@ $ poetry run csv2notion
 
 ```shell
 $ csv2notion --help
-usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--custom-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--image-caption-column COLUMN]
+usage: csv2notion [-h] --token TOKEN [--url URL] [--max-threads NUMBER] [--column-types TYPES] [--image-column COLUMN] [--image-column-keep] [--image-column-mode {cover,block}] [--image-caption-column COLUMN]
                   [--image-caption-column-keep] [--icon-column COLUMN] [--icon-column-keep] [--default-icon ICON] [--missing-columns-action {add,ignore,fail}] [--missing-relations-action {add,ignore,fail}]
                   [--fail-on-relation-duplicates] [--fail-on-duplicates] [--fail-on-duplicate-csv-columns] [--fail-on-conversion-error] [--fail-on-inaccessible-relations] [--merge] [--merge-only-column COLUMN]
                   [--mandatory-column COLUMN] [--log FILE] [--verbose] [--version]
@@ -73,7 +73,7 @@ optional arguments:
   --token TOKEN         Notion token, stored in token_v2 cookie for notion.so [NEEDED FOR UPLOAD]
   --url URL             Notion database URL; if none is provided, will create a new database
   --max-threads NUMBER  upload threads (default: 5)
-  --custom-types TYPES  comma-separated list of custom types to use for non-key columns; if none is provided, types will be guessed from CSV values (used when creating a new database or --missing-columns-action is set to 'add')
+  --column-types TYPES  comma-separated list of custom types to use for non-key columns; if none is provided, types will be guessed from CSV values (used when creating a new database or --missing-columns-action is set to 'add')
   --image-column COLUMN
                         CSV column that points to URL or image file that will be embedded for that row
   --image-column-keep   keep image CSV column as a Notion DB column
@@ -131,7 +131,7 @@ If a CSV file has columns not present in Notion DB, they will be ignored by defa
 
 ### Column types
 
-By default, the tool will try to guess column types based on their content. Alternatively, you can provide a comma-separated list of column types with the `--custom-types` option when creating a new database or adding new columns with the `--missing-columns-action` option set to `add`. Since the first column in Notion DB is always text, the tool will use the list to set types for the rest of the columns.
+By default, the tool will try to guess column types based on their content. Alternatively, you can provide a comma-separated list of column types with the `--column-types` option when creating a new database or adding new columns with the `--missing-columns-action` option set to `add`. Since the first column in Notion DB is always text, the tool will use the list to set types for the rest of the columns.
 
 If the tool cannot convert the column value type properly, it will replace it with an empty string. If you want to make sure all values are correctly converted, use the `--fail-on-conversion-error` flag, which will stop execution in case of a conversion error.
 

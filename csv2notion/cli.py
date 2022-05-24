@@ -22,7 +22,7 @@ def cli(*argv: str) -> None:
     logger.info("Validating CSV & Notion DB schema")
 
     csv_data = CSVData(
-        args.csv_file, args.custom_types, args.fail_on_duplicate_csv_columns
+        args.csv_file, args.column_types, args.fail_on_duplicate_csv_columns
     )
 
     if not csv_data:

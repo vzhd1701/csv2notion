@@ -8,7 +8,7 @@ from csv2notion.cli import cli
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_no_reupload(
+def test_merge_column_types_file_with_content_no_reupload(
     tmp_path, db_maker, smallest_gif
 ):
     test_icon = tmp_path / "test_icon1.gif"
@@ -20,7 +20,7 @@ def test_merge_custom_types_file_with_content_no_reupload(
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -34,7 +34,7 @@ def test_merge_custom_types_file_with_content_no_reupload(
         "--url",
         test_db.url,
         "--merge",
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -51,7 +51,7 @@ def test_merge_custom_types_file_with_content_no_reupload(
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_reupload(
+def test_merge_column_types_file_with_content_reupload(
     tmp_path, smallest_gif, db_maker
 ):
     test_image1 = tmp_path / "test_image1.gif"
@@ -67,7 +67,7 @@ def test_merge_custom_types_file_with_content_reupload(
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -83,7 +83,7 @@ def test_merge_custom_types_file_with_content_reupload(
         "--url",
         test_db.url,
         "--merge",
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -100,7 +100,7 @@ def test_merge_custom_types_file_with_content_reupload(
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_upload_on_empty(
+def test_merge_column_types_file_with_content_upload_on_empty(
     tmp_path, smallest_gif, db_maker
 ):
     test_image = tmp_path / "test_image.gif"
@@ -112,7 +112,7 @@ def test_merge_custom_types_file_with_content_upload_on_empty(
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -125,7 +125,7 @@ def test_merge_custom_types_file_with_content_upload_on_empty(
         "--url",
         test_db.url,
         "--merge",
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -139,14 +139,14 @@ def test_merge_custom_types_file_with_content_upload_on_empty(
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker):
+def test_merge_column_types_file_with_content_number_change(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na,https://via.placeholder.com/100")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -161,7 +161,7 @@ def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker):
         "--url",
         test_db.url,
         "--merge",
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -178,7 +178,7 @@ def test_merge_custom_types_file_with_content_number_change(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker):
+def test_merge_column_types_file_with_content_order_change(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         'a,b\na,"https://via.placeholder.com/200, https://via.placeholder.com/100"'
@@ -187,7 +187,7 @@ def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
@@ -202,7 +202,7 @@ def test_merge_custom_types_file_with_content_order_change(tmp_path, db_maker):
         "--url",
         test_db.url,
         "--merge",
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )

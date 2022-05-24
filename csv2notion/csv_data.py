@@ -35,12 +35,12 @@ class CSVData(Iterable[CSVRowType]):  # noqa:  WPS214
     def __init__(
         self,
         csv_file: Path,
-        custom_types: Optional[List[str]] = None,
+        column_types: Optional[List[str]] = None,
         fail_on_duplicate_columns: bool = False,
     ) -> None:
         self.csv_file = csv_file
         self.rows = csv_read(self.csv_file, fail_on_duplicate_columns)
-        self.types = self._column_types(custom_types)
+        self.types = self._column_types(column_types)
 
     def __len__(self) -> int:
         return len(self.rows)
@@ -70,19 +70,19 @@ class CSVData(Iterable[CSVRowType]):  # noqa:  WPS214
     def drop_rows(self, *keys: str) -> None:
         self.rows = [row for row in self.rows if row[self.key_column] not in keys]
 
-    def _column_types(self, custom_types: Optional[List[str]] = None) -> Dict[str, str]:
-        if not custom_types:
+    def _column_types(self, column_types: Optional[List[str]] = None) -> Dict[str, str]:
+        if not column_types:
             return {
                 key: guess_type_by_values(self._col_values(key))
                 for key in self.columns[1:]
             }
 
-        if len(custom_types) != len(self.columns) - 1:
+        if len(column_types) != len(self.columns) - 1:
             raise CriticalError(
                 "Each column (except key) type must be defined in custom types list"
             )
 
-        return {key: custom_types[i] for i, key in enumerate(self.content_columns)}
+        return {key: column_types[i] for i, key in enumerate(self.content_columns)}
 
     def _col_values(self, col_name: str) -> List[str]:
         return [row[col_name] for row in self.rows]

@@ -6,12 +6,12 @@ from csv2notion.cli import cli
 from csv2notion.utils_exceptions import CriticalError
 
 
-def test_custom_types_bad():
+def test_column_types_bad():
     with pytest.raises(CriticalError) as e:
         cli(
             "--token",
             "fake",
-            "--custom-types",
+            "--column-types",
             "bad_type",
             "--url",
             "https://www.notion.so/test",
@@ -21,7 +21,7 @@ def test_custom_types_bad():
     assert "Unknown types: bad_type; allowed types:" in str(e.value)
 
 
-def test_custom_types_bad_count(tmp_path):
+def test_column_types_bad_count(tmp_path):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b\na,b")
 
@@ -29,7 +29,7 @@ def test_custom_types_bad_count(tmp_path):
         cli(
             "--token",
             "fake",
-            "--custom-types",
+            "--column-types",
             "text,text",
             "--url",
             "https://www.notion.so/test",
@@ -43,14 +43,14 @@ def test_custom_types_bad_count(tmp_path):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_checkbox(tmp_path, db_maker):
+def test_column_types_checkbox(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,true\nb,false\nc,test")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "checkbox",
         "--max-threads=1",
         str(test_file),
@@ -71,14 +71,14 @@ def test_custom_types_checkbox(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_date(tmp_path, db_maker):
+def test_column_types_date(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,2001-12-01\nb,bad")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "date",
         "--max-threads=1",
         str(test_file),
@@ -97,14 +97,14 @@ def test_custom_types_date(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_textlike(tmp_path, db_maker):
+def test_column_types_textlike(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,c,d,e\na1,b1,c1,d1,e1")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "email,phone_number,url,text",
         "--max-threads=1",
         str(test_file),
@@ -127,14 +127,14 @@ def test_custom_types_textlike(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_multi_select(tmp_path, db_maker):
+def test_column_types_multi_select(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text('a,b\na,"b1, b2, b3"')
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "multi_select",
         "--max-threads=1",
         str(test_file),
@@ -154,14 +154,14 @@ def test_custom_types_multi_select(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_select(tmp_path, db_maker):
+def test_column_types_select(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na1,b1\na2,b2")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "select",
         "--max-threads=1",
         str(test_file),
@@ -183,14 +183,14 @@ def test_custom_types_select(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_number(tmp_path, db_maker):
+def test_column_types_number(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na1,100\na2,1.25\na3,bad")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "number",
         "--max-threads=1",
         str(test_file),

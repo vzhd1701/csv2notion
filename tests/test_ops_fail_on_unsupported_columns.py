@@ -17,7 +17,7 @@ def test_fail_on_unsupported_columns(tmp_path, db_maker):
     e = db_maker.from_raising_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "created_by,last_edited_by,rollup,formula",
         "--fail-on-unsupported-columns",
         str(test_file),
@@ -40,7 +40,7 @@ def test_fail_on_unsupported_columns_ok(tmp_path, caplog, db_maker):
         test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "created_by,last_edited_by,rollup,formula",
             str(test_file),
         )

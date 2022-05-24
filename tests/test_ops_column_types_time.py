@@ -6,14 +6,14 @@ from dateutil.tz import tz
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_created_time(tmp_path, db_maker):
+def test_column_types_created_time(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,2001-12-01\nb,bad")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "created_time",
         "--max-threads=1",
         str(test_file),
@@ -45,7 +45,7 @@ def test_custom_types_created_time(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_created_time_multi(tmp_path, db_maker):
+def test_column_types_created_time_multi(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         "a,b,c\na,2001-11-01,2001-12-01\nb,2001-12-01,bad\nc,bad,2001-12-01"
@@ -54,7 +54,7 @@ def test_custom_types_created_time_multi(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "created_time,created_time",
         "--max-threads=1",
         str(test_file),
@@ -93,14 +93,14 @@ def test_custom_types_created_time_multi(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_last_edited_time(tmp_path, db_maker):
+def test_column_types_last_edited_time(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,2001-12-01\nb,bad")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "last_edited_time",
         "--max-threads=1",
         str(test_file),
@@ -132,7 +132,7 @@ def test_custom_types_last_edited_time(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_last_edited_time_multi(tmp_path, db_maker):
+def test_column_types_last_edited_time_multi(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         "a,b,c\na,2001-11-01,2001-12-01\nb,2001-12-01,bad\nc,bad,2001-12-01"
@@ -141,7 +141,7 @@ def test_custom_types_last_edited_time_multi(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "last_edited_time,last_edited_time",
         "--max-threads=1",
         str(test_file),

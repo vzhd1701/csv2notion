@@ -16,7 +16,7 @@ def test_fail_on_conversion_error(tmp_path, db_maker, caplog):
             "--token",
             db_maker.token,
             "--fail-on-conversion-error",
-            "--custom-types",
+            "--column-types",
             "number",
             str(test_file),
         )
@@ -36,7 +36,7 @@ def test_fail_on_conversion_error_empty(tmp_path, db_maker):
         "--token",
         db_maker.token,
         "--fail-on-conversion-error",
-        "--custom-types",
+        "--column-types",
         "number",
         str(test_file),
     )
@@ -60,7 +60,7 @@ def test_fail_on_conversion_error_ok(tmp_path, db_maker):
         "--token",
         db_maker.token,
         "--fail-on-conversion-error",
-        "--custom-types",
+        "--column-types",
         "number",
         str(test_file),
     )

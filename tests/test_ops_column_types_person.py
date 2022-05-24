@@ -5,7 +5,7 @@ import pytest
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person(tmp_path, db_maker):
+def test_column_types_person(tmp_path, db_maker):
     test_user_name = db_maker.client.current_user.name
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
@@ -14,7 +14,7 @@ def test_custom_types_person(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "person",
         "--max-threads=1",
         str(test_file),
@@ -35,7 +35,7 @@ def test_custom_types_person(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person_missing(tmp_path, db_maker, caplog):
+def test_column_types_person_missing(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na1,missing")
 
@@ -43,7 +43,7 @@ def test_custom_types_person_missing(tmp_path, db_maker, caplog):
         test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "person",
             str(test_file),
         )
@@ -61,7 +61,7 @@ def test_custom_types_person_missing(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person_missing_fail(tmp_path, db_maker, caplog):
+def test_column_types_person_missing_fail(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na1,missing")
 
@@ -69,7 +69,7 @@ def test_custom_types_person_missing_fail(tmp_path, db_maker, caplog):
         e = db_maker.from_raising_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "person",
             "--fail-on-conversion-error",
             str(test_file),
@@ -81,7 +81,7 @@ def test_custom_types_person_missing_fail(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person_email(tmp_path, db_maker):
+def test_column_types_person_email(tmp_path, db_maker):
     test_user_email = db_maker.client.current_user.email
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
@@ -90,7 +90,7 @@ def test_custom_types_person_email(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "person",
         str(test_file),
     )
@@ -106,7 +106,7 @@ def test_custom_types_person_email(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person_email_external(tmp_path, db_maker, caplog):
+def test_column_types_person_email_external(tmp_path, db_maker, caplog):
     test_user = db_maker.find_user("test_py_notion2@protonmail.com")
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
@@ -116,7 +116,7 @@ def test_custom_types_person_email_external(tmp_path, db_maker, caplog):
         test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "person",
             str(test_file),
         )
@@ -132,7 +132,7 @@ def test_custom_types_person_email_external(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person_email_missing(tmp_path, db_maker, caplog):
+def test_column_types_person_email_missing(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na1,missing@mail.com")
 
@@ -140,7 +140,7 @@ def test_custom_types_person_email_missing(tmp_path, db_maker, caplog):
         test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "person",
             str(test_file),
         )
@@ -158,7 +158,7 @@ def test_custom_types_person_email_missing(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_person_email_missing_fail(tmp_path, db_maker, caplog):
+def test_column_types_person_email_missing_fail(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(f"a,b\na1,missing@mail.com")
 
@@ -166,7 +166,7 @@ def test_custom_types_person_email_missing_fail(tmp_path, db_maker, caplog):
         e = db_maker.from_raising_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "person",
             "--fail-on-conversion-error",
             str(test_file),

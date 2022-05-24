@@ -7,14 +7,14 @@ from csv2notion.utils_exceptions import NotionError
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_empty(tmp_path, db_maker):
+def test_column_types_file_empty(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,")
 
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         "--max-threads=1",
         str(test_file),
@@ -31,7 +31,7 @@ def test_custom_types_file_empty(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_not_found(tmp_path, db_maker, caplog):
+def test_column_types_file_not_found(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,missing.txt")
 
@@ -39,7 +39,7 @@ def test_custom_types_file_not_found(tmp_path, db_maker, caplog):
         test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "file",
             str(test_file),
         )
@@ -57,7 +57,7 @@ def test_custom_types_file_not_found(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_not_found_fail(tmp_path, db_maker, caplog):
+def test_column_types_file_not_found_fail(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,missing.txt")
 
@@ -65,7 +65,7 @@ def test_custom_types_file_not_found_fail(tmp_path, db_maker, caplog):
         e = db_maker.from_raising_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "file",
             "--fail-on-conversion-error",
             str(test_file),
@@ -78,7 +78,7 @@ def test_custom_types_file_not_found_fail(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_banned(tmp_path, db_maker, caplog):
+def test_column_types_file_banned(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,banned.exe")
 
@@ -89,7 +89,7 @@ def test_custom_types_file_banned(tmp_path, db_maker, caplog):
         test_db = db_maker.from_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "file",
             str(test_file),
         )
@@ -107,7 +107,7 @@ def test_custom_types_file_banned(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_banned_fail(tmp_path, db_maker, caplog):
+def test_column_types_file_banned_fail(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,banned.exe")
 
@@ -118,7 +118,7 @@ def test_custom_types_file_banned_fail(tmp_path, db_maker, caplog):
         e = db_maker.from_raising_cli(
             "--token",
             db_maker.token,
-            "--custom-types",
+            "--column-types",
             "file",
             "--fail-on-conversion-error",
             str(test_file),
@@ -131,7 +131,7 @@ def test_custom_types_file_banned_fail(tmp_path, db_maker, caplog):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_embed(tmp_path, db_maker):
+def test_column_types_file_embed(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         "a,b\n"
@@ -142,7 +142,7 @@ def test_custom_types_file_embed(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         "--max-threads=1",
         str(test_file),
@@ -164,7 +164,7 @@ def test_custom_types_file_embed(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_duplicate(tmp_path, db_maker):
+def test_column_types_file_duplicate(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/100"'
@@ -173,7 +173,7 @@ def test_custom_types_file_duplicate(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         "--max-threads=1",
         str(test_file),
@@ -190,7 +190,7 @@ def test_custom_types_file_duplicate(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_multi_column(tmp_path, db_maker):
+def test_column_types_file_multi_column(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text(
         "a,b,c\na,https://via.placeholder.com/100,https://via.placeholder.com/200"
@@ -199,7 +199,7 @@ def test_custom_types_file_multi_column(tmp_path, db_maker):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file,file",
         "--max-threads=1",
         str(test_file),
@@ -218,7 +218,7 @@ def test_custom_types_file_multi_column(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_custom_types_file_upload(tmp_path, db_maker, smallest_gif):
+def test_column_types_file_upload(tmp_path, db_maker, smallest_gif):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b\na,test_image.gif")
 
@@ -228,7 +228,7 @@ def test_custom_types_file_upload(tmp_path, db_maker, smallest_gif):
     test_db = db_maker.from_cli(
         "--token",
         db_maker.token,
-        "--custom-types",
+        "--column-types",
         "file",
         str(test_file),
     )
