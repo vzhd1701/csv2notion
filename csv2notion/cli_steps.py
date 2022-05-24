@@ -55,13 +55,13 @@ def convert_csv_to_notion_rows(
 
 def upload_rows(
     notion_rows: List[NotionUploadRow],
-    token: str,
+    client: NotionClient,
     collection_id: str,
     is_merge: bool,
     max_threads: int,
 ) -> None:
     worker = partial(
-        ThreadRowUploader(token, collection_id).worker,
+        ThreadRowUploader(client, collection_id).worker,
         is_merge=is_merge,
     )
 

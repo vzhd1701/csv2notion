@@ -41,7 +41,7 @@ def cli(*argv: str) -> None:
 
     upload_rows(
         notion_rows,
-        token=args.token,
+        client=client,
         collection_id=collection_id,
         is_merge=args.merge,
         max_threads=args.max_threads,
