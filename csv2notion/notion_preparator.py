@@ -35,6 +35,8 @@ class NotionPreparator(object):  # noqa: WPS214
         if self.rules.fail_on_duplicates:
             steps += [self._validate_csv_duplicates, self._validate_db_duplicates]
 
+        steps += [self._validate_columns_left]
+
         for step in steps:
             step()
 
@@ -167,6 +169,10 @@ class NotionPreparator(object):  # noqa: WPS214
         csv_keys = [v[self.csv.key_column] for v in self.csv]
         if len(set(csv_keys)) != len(csv_keys):
             raise NotionError("Duplicate values found in first column in CSV.")
+
+    def _validate_columns_left(self) -> None:
+        if not self.csv.columns:
+            raise NotionError("No columns left after validation, nothing to upload.")
 
     def _add_columns(self, columns: Iterable[str]) -> None:
         for column in columns:

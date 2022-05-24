@@ -173,6 +173,26 @@ def test_existing_page(tmp_path, db_maker):
     assert test_db.rows[0].columns["c"] == "cc"
 
 
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_existing_page_column_mismatch(tmp_path, db_maker):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b,c\naa,bb,cc\n")
+
+    test_db = db_maker.from_csv_head("d,e")
+
+    with pytest.raises(NotionError) as e:
+        cli(
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            str(test_file),
+        )
+
+    assert "No columns left after validation, nothing to upload" in str(e.value)
+
+
 def test_log_file(fs, mocker):
     mocker.patch(
         "sys.argv",
