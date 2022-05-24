@@ -227,10 +227,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     "\notherwise those columns will be ignored"
                 ),
             },
-            "--fail-on-unsupported-columns": {
+            "--fail-on-unsettable-columns": {
                 "action": "store_true",
                 "help": (
-                    "fail if DB has columns that are not supported by this tool;"
+                    "fail if DB has columns that don't support assigning value to them;"
                     "\notherwise those columns will be ignored"
                     "\n(columns with type created_by, last_edited_by,"
                     " rollup or formula)"

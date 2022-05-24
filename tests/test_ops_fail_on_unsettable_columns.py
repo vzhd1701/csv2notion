@@ -8,7 +8,7 @@ from csv2notion.utils_exceptions import NotionError
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_unsupported_columns(tmp_path, db_maker):
+def test_fail_on_unsettable_columns(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,b,c,d,e\na,b,c,d,e")
 
@@ -17,7 +17,7 @@ def test_fail_on_unsupported_columns(tmp_path, db_maker):
         db_maker.token,
         "--column-types",
         "created_by,last_edited_by,rollup,formula",
-        "--fail-on-unsupported-columns",
+        "--fail-on-unsettable-columns",
         str(test_file),
     )
 
@@ -30,7 +30,7 @@ def test_fail_on_unsupported_columns(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_unsupported_columns_ok(tmp_path, caplog, db_maker):
+def test_fail_on_unsettable_columns_ok(tmp_path, caplog, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
     test_file.write_text("a,b,c,d,e\na,b,c,d,e")
 

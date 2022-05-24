@@ -57,7 +57,7 @@ class ConversionRules(object):
     fail_on_conversion_error: bool
     fail_on_inaccessible_relations: bool
     fail_on_missing_columns: bool
-    fail_on_unsupported_columns: bool
+    fail_on_unsettable_columns: bool
 
     @property
     def files_search_path(self) -> Path:

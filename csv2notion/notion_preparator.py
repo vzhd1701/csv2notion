@@ -114,7 +114,7 @@ class NotionPreparator(object):  # noqa: WPS214
                 f" due to unsupported type: {unsupported_columns}"
             )
 
-            if self.rules.fail_on_unsupported_columns:
+            if self.rules.fail_on_unsettable_columns:
                 raise NotionError(warn_text)
             else:
                 logger.warning(warn_text)
