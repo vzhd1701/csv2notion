@@ -31,7 +31,7 @@ class NotionRowUploader(object):
     def _get_db_row(
         self, row: NotionUploadRow, is_merge: bool
     ) -> CollectionRowBlockExtended:
-        existing_row = self.db.rows.get(row.key())
+        existing_row = self.db.rows.get(row.key()) if is_merge else None
 
         if is_merge and existing_row:
             cur_row = existing_row
