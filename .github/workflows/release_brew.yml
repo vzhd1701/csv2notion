@@ -18,9 +18,8 @@ jobs:
 
       - name: Update Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
-        env:
-          HOMEBREW_BUMP_TAG: ${{ steps.get-latest-tag.outputs.tag }}
         with:
           token: ${{ secrets.BREW_BUMP_TOKEN }}
           tap: vzhd1701/tap
           formula: ${{ env.PACKAGE_NAME }}
+          tag: ${{ steps.get-latest-tag.outputs.tag }}
