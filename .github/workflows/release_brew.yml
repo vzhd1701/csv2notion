@@ -1,8 +1,5 @@
 name: release_brew
 
-on:
-  workflow_dispatch:
-
 env:
   PACKAGE_NAME: csv2notion
 
@@ -10,8 +7,16 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        id: get-latest-tag
+
       - name: Update Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
+        env:
+          HOMEBREW_BUMP_TAG: ${{ steps.get-latest-tag.outputs.tag }}
         with:
           token: ${{ secrets.BREW_BUMP_TOKEN }}
           tap: vzhd1701/tap
