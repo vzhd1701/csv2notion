@@ -1,5 +1,8 @@
 name: release_brew
 
+on:
+  workflow_dispatch:
+
 env:
   PACKAGE_NAME: csv2notion
 
