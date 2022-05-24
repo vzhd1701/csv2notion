@@ -143,7 +143,7 @@ def test_default_icon_merge_only(tmp_path, db_maker):
     test_icon_emoji_default = "🤔"
 
     test_file = tmp_path / "test.csv"
-    test_file.write_text(f"a,b\na1,b1\na2,b2")
+    test_file.write_text("a,b\na1,b1\na2,b2")
 
     test_db = db_maker.from_csv_head("a,b")
 

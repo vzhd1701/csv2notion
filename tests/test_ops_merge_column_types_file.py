@@ -1,4 +1,3 @@
-import logging
 import re
 
 import pytest
@@ -107,7 +106,7 @@ def test_merge_column_types_file_with_content_upload_on_empty(
     test_image.write_bytes(smallest_gif)
 
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b\na,")
+    test_file.write_text("a,b\na,")
 
     test_db = db_maker.from_cli(
         "--token",
@@ -141,7 +140,7 @@ def test_merge_column_types_file_with_content_upload_on_empty(
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_merge_column_types_file_with_content_number_change(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b\na,https://via.placeholder.com/100")
+    test_file.write_text("a,b\na,https://via.placeholder.com/100")
 
     test_db = db_maker.from_cli(
         "--token",
@@ -152,7 +151,7 @@ def test_merge_column_types_file_with_content_number_change(tmp_path, db_maker):
     )
 
     test_file.write_text(
-        f'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
+        'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
     )
 
     cli(
@@ -193,7 +192,7 @@ def test_merge_column_types_file_with_content_order_change(tmp_path, db_maker):
     )
 
     test_file.write_text(
-        f'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
+        'a,b\na,"https://via.placeholder.com/100, https://via.placeholder.com/200"'
     )
 
     cli(

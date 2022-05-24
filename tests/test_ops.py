@@ -198,4 +198,4 @@ def test_keyboard_interrupt(mocker):
 
 
 def test_main_import():
-    from csv2notion import __main__
+    from csv2notion import __main__  # noqa: F401, WPS433

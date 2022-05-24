@@ -37,7 +37,7 @@ def test_column_types_person(tmp_path, db_maker):
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_column_types_person_missing(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b\na1,missing")
+    test_file.write_text("a,b\na1,missing")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
         test_db = db_maker.from_cli(
@@ -63,7 +63,7 @@ def test_column_types_person_missing(tmp_path, db_maker, caplog):
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_column_types_person_missing_fail(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b\na1,missing")
+    test_file.write_text("a,b\na1,missing")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
         e = db_maker.from_raising_cli(
@@ -134,7 +134,7 @@ def test_column_types_person_email_external(tmp_path, db_maker, caplog):
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_column_types_person_email_missing(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b\na1,missing@mail.com")
+    test_file.write_text("a,b\na1,missing@mail.com")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
         test_db = db_maker.from_cli(
@@ -160,7 +160,7 @@ def test_column_types_person_email_missing(tmp_path, db_maker, caplog):
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_column_types_person_email_missing_fail(tmp_path, db_maker, caplog):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text(f"a,b\na1,missing@mail.com")
+    test_file.write_text("a,b\na1,missing@mail.com")
 
     with caplog.at_level(logging.INFO, logger="csv2notion"):
         e = db_maker.from_raising_cli(

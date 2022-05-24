@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from csv2notion.cli import cli

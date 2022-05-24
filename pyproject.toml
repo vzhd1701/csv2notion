@@ -61,18 +61,15 @@ mypy = "^0.950"
 base = "https://raw.githubusercontent.com/wemake-services/wemake-python-styleguide/master/styles/flakehell.toml"
 extended_default_ignore=[]
 max_line_length = 88
-exclude = [
-    "tests/*.py",
-]
 
 [tool.flakehell.plugins]
 # Disabled [personal preference]
-# WPS111 short names
-# WPS305 forbids f-strings
-# WPS326 implicit line concat
 # Docstings, don't have any
+# WPS111 short names
 # WPS226 String constant overuse
 # WPS237 Complex f-strings
+# WPS305 forbids f-strings
+# WPS326 implicit line concat
 # WPS437 protected attributes (needed for Notion sdk)
 
 # Exceptions [false positives & formatting]
@@ -94,6 +91,33 @@ wemake-python-styleguide = ["+*", "-WPS111", "-WPS226", "-WPS237", "-WPS305", "-
 [tool.flakehell.exceptions."csv2notion/version.py"]
 # I like it this way
 wemake-python-styleguide = ["-WPS410"]
+
+[tool.flakehell.exceptions."tests/*.py"]
+# Personal preferences, maybe enable later
+# WPS110 wrong names
+# WPS114 underscored number name pattern var_123
+# WPS202 too many module members
+# WPS204 overused expressions
+# WPS210 too many local variables
+# WPS218 too many asserts
+# WPS219 deep access a.b.c.d.e
+# WPS336 string concatenation abc + cba
+
+# Must be more explicit in tests
+# WPS118 long function names
+# WPS430 nested functions
+# WPS432 magic numbers
+# WPS441 accessing protected _vars
+# WPS459 float comparison
+# WPS507 useless `len()` compare
+# WPS520 my_check == []
+
+# Required for tests
+# S101 assert statements
+# S105 possible hardcoded passwords
+
+wemake-python-styleguide = ["-WPS110", "-WPS114", "-WPS118", "-WPS202", "-WPS204", "-WPS210", "-WPS218", "-WPS219", "-WPS336", "-WPS430", "-WPS432", "-WPS441", "-WPS459", "-WPS507", "-WPS520"]
+flake8-bandit = ["-S101", "-S105"]
 
 [tool.black]
 line-length = 88
@@ -123,7 +147,6 @@ skip_gitignore = true
     ]
     omit = [
         '*/tests/*',
-        '*/notion/*',
     ]
 
 [tool.mypy]

@@ -1,6 +1,4 @@
 import hashlib
-import logging
-import re
 
 import pytest
 from notion.block import ImageBlock, TextBlock
@@ -173,7 +171,7 @@ def test_merge_image_column_with_image_content_remove(tmp_path, db_maker):
         str(test_file),
     )
 
-    test_file.write_text(f"a,image url\na,")
+    test_file.write_text("a,image url\na,")
 
     cli(
         "--token",
@@ -215,9 +213,8 @@ def test_merge_image_column_with_image_content_file_no_reupload(
         str(test_file),
     )
 
-    image_meta_pre = (
-        test_db.rows[0].children[0].get("properties.cover_meta", force_refresh=True)
-    )
+    image_block = test_db.rows[0].children[0]
+    image_meta_pre = image_block.get("properties.cover_meta", force_refresh=True)
 
     test_file.write_text(f"a,b,image file\na,b,{test_image2.name}")
 
@@ -232,10 +229,8 @@ def test_merge_image_column_with_image_content_file_no_reupload(
         str(test_file),
     )
 
-    image = test_db.rows[0].children[0]
-    image_meta_after = (
-        test_db.rows[0].children[0].get("properties.cover_meta", force_refresh=True)
-    )
+    image_block = test_db.rows[0].children[0]
+    image_meta_after = image_block.get("properties.cover_meta", force_refresh=True)
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
@@ -244,7 +239,7 @@ def test_merge_image_column_with_image_content_file_no_reupload(
     assert test_db.rows[0].columns["b"] == "b"
     assert len(test_db.rows[0].children) == 1
 
-    assert image.type == "image"
+    assert image_block.type == "image"
     assert image_meta_pre == image_meta_after
 
 
@@ -286,9 +281,9 @@ def test_merge_image_column_with_image_content_file_reupload(
         str(test_file),
     )
 
-    image = test_db.rows[0].children[0]
-    image_is_cover_block = (
-        test_db.rows[0].children[0].get("properties.is_cover_block", force_refresh=True)
+    image_block = test_db.rows[0].children[0]
+    image_is_cover_block = image_block.get(
+        "properties.is_cover_block", force_refresh=True
     )
 
     assert test_db.header == {"a", "b"}
@@ -298,8 +293,8 @@ def test_merge_image_column_with_image_content_file_reupload(
     assert test_db.rows[0].columns["b"] == "b"
     assert len(test_db.rows[0].children) == 1
 
-    assert image.type == "image"
-    assert image_is_cover_block == True
+    assert image_block.type == "image"
+    assert image_is_cover_block is True
     assert test_db.rows[0].cover_block_meta["sha256"] == test_image2_sha256
 
 
@@ -459,7 +454,7 @@ def test_merge_image_column_cover_with_content_remove(tmp_path, db_maker):
         str(test_file),
     )
 
-    test_file.write_text(f"a,image url\na,\n")
+    test_file.write_text("a,image url\na,\n")
 
     cli(
         "--token",

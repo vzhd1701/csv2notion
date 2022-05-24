@@ -1,6 +1,3 @@
-import logging
-import re
-
 import pytest
 
 from csv2notion.cli import cli
@@ -25,7 +22,7 @@ def test_merge_key_missing(tmp_path, db_maker):
             str(test_file),
         )
 
-    assert f"Key column 'a' does not exist in Notion DB" in str(e.value)
+    assert "Key column 'a' does not exist in Notion DB" in str(e.value)
 
 
 @pytest.mark.vcr()
@@ -46,7 +43,7 @@ def test_merge_key_invalid(tmp_path, db_maker):
             str(test_file),
         )
 
-    assert f"Notion DB column 'a' is not a key column" in str(e.value)
+    assert "Notion DB column 'a' is not a key column" in str(e.value)
 
 
 @pytest.mark.vcr()

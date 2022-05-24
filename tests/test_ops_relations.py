@@ -1,5 +1,4 @@
 import logging
-import os
 
 import pytest
 from notion.utils import slugify

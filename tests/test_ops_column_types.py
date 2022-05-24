@@ -62,11 +62,11 @@ def test_column_types_checkbox(tmp_path, db_maker):
     assert len(test_db.rows) == 3
 
     assert test_db.rows[0].columns["a"] == "a"
-    assert test_db.rows[0].columns["b"] == True
+    assert test_db.rows[0].columns["b"] is True
     assert test_db.rows[1].columns["a"] == "b"
-    assert test_db.rows[1].columns["b"] == False
+    assert test_db.rows[1].columns["b"] is False
     assert test_db.rows[2].columns["a"] == "c"
-    assert test_db.rows[2].columns["b"] == False
+    assert test_db.rows[2].columns["b"] is False
 
 
 @pytest.mark.vcr()
@@ -89,8 +89,10 @@ def test_column_types_date(tmp_path, db_maker):
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 2
 
+    expected_time = datetime.datetime(2001, 12, 1)
+
     assert test_db.rows[0].columns["a"] == "a"
-    assert test_db.rows[0].columns["b"].start == datetime.datetime(2001, 12, 1)
+    assert test_db.rows[0].columns["b"].start == expected_time
     assert test_db.rows[1].columns["a"] == "b"
     assert test_db.rows[1].columns["b"] is None
 

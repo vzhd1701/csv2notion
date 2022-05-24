@@ -1,10 +1,8 @@
 import logging
-import re
 
 import pytest
 from notion.user import User
 
-from csv2notion.cli import cli
 from csv2notion.utils_exceptions import NotionError
 
 
