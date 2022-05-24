@@ -1,24 +1,24 @@
 import logging
-from typing import Any, Dict, Iterable, List, Set
+from typing import Callable, Dict, Iterable, List, Set
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_db import NotionDB
 from csv2notion.utils_exceptions import NotionError
-from csv2notion.utils_static import UNSETTABLE_TYPES
+from csv2notion.utils_static import UNSETTABLE_TYPES, ConversionRules
 
 logger = logging.getLogger(__name__)
 
 
 class NotionPreparator(object):  # noqa: WPS214
     def __init__(
-        self, db: NotionDB, csv: CSVData, conversion_rules: Dict[str, Any]
+        self, db: NotionDB, csv: CSVData, conversion_rules: ConversionRules
     ) -> None:
         self.db = db
         self.csv = csv
         self.rules = conversion_rules
 
     def prepare(self) -> None:
-        steps = [
+        steps: List[Callable[[], None]] = [
             self._validate_image_column,
             self._validate_image_caption_column,
             self._validate_icon_column,
@@ -29,45 +29,45 @@ class NotionPreparator(object):  # noqa: WPS214
             self._handle_inaccessible_relations,
         ]
 
-        if self.rules["fail_on_relation_duplicates"]:
+        if self.rules.fail_on_relation_duplicates:
             steps += [self._validate_relations_duplicates]
 
-        if self.rules["fail_on_duplicates"]:
+        if self.rules.fail_on_duplicates:
             steps += [self._validate_csv_duplicates, self._validate_db_duplicates]
 
         for step in steps:
             step()
 
     def _validate_image_column(self) -> None:
-        if self.rules["image_column"] is None:
+        if self.rules.image_column is None:
             return
 
-        if self.rules["image_column"] not in self.csv.columns:
+        if self.rules.image_column not in self.csv.columns:
             raise NotionError(
-                f"Image column '{self.rules['image_column']}' not found in csv file."
+                f"Image column '{self.rules.image_column}' not found in csv file."
             )
 
     def _validate_image_caption_column(self) -> None:
-        if self.rules["image_caption_column"] is None:
+        if self.rules.image_caption_column is None:
             return
 
-        if self.rules["image_caption_column"] not in self.csv.columns:
+        if self.rules.image_caption_column not in self.csv.columns:
             raise NotionError(
-                f"Image caption column '{self.rules['image_caption_column']}'"
+                f"Image caption column '{self.rules.image_caption_column}'"
                 f" not found in csv file."
             )
 
     def _validate_icon_column(self) -> None:
-        if self.rules["icon_column"] is None:
+        if self.rules.icon_column is None:
             return
 
-        if self.rules["icon_column"] not in self.csv.columns:
+        if self.rules.icon_column not in self.csv.columns:
             raise NotionError(
-                f"Icon column '{self.rules['icon_column']}' not found in csv file."
+                f"Icon column '{self.rules.icon_column}' not found in csv file."
             )
 
     def _validate_mandatory_columns(self) -> None:
-        mandatory_columns = set(self.rules["mandatory_columns"])
+        mandatory_columns = set(self.rules.mandatory_column)
         csv_columns = set(self.csv.columns)
 
         missing_columns = mandatory_columns - csv_columns
@@ -77,17 +77,17 @@ class NotionPreparator(object):  # noqa: WPS214
             )
 
     def _handle_merge(self) -> None:
-        if self.rules["is_merge"]:
+        if self.rules.merge:
             self._validate_key_column(self.csv.key_column)
 
-            if self.rules["merge_only_columns"]:
+            if self.rules.merge_only_column:
                 self._vlaidate_merge_only_columns()
                 ignored_columns = set(self.csv.content_columns) - set(
-                    self.rules["merge_only_columns"]
+                    self.rules.merge_only_column
                 )
                 self.csv.drop_columns(*ignored_columns)
 
-            if self.rules["merge_skip_new"]:
+            if self.rules.merge_skip_new:
                 self.csv.drop_rows(*self._get_new_row_keys())
 
     def _handle_missing_columns(self) -> None:
@@ -95,10 +95,10 @@ class NotionPreparator(object):  # noqa: WPS214
         if missing_columns:
             warn_text = f"CSV columns missing from Notion DB: {missing_columns}"
 
-            if self.rules["add_missing_columns"]:
+            if self.rules.add_missing_columns:
                 logger.info(f"Adding missing columns to the DB: {missing_columns}")
                 self._add_columns(missing_columns)
-            elif self.rules["fail_on_missing_columns"]:
+            elif self.rules.fail_on_missing_columns:
                 raise NotionError(warn_text)
             else:
                 logger.warning(warn_text)
@@ -112,7 +112,7 @@ class NotionPreparator(object):  # noqa: WPS214
                 f" due to unsupported type: {unsupported_columns}"
             )
 
-            if self.rules["fail_on_unsupported_columns"]:
+            if self.rules.fail_on_unsupported_columns:
                 raise NotionError(warn_text)
             else:
                 logger.warning(warn_text)
@@ -127,7 +127,7 @@ class NotionPreparator(object):  # noqa: WPS214
         if inaccessible_relations:
             warn_text = f"Columns with inaccessible relations: {inaccessible_relations}"
 
-            if self.rules["fail_on_inaccessible_relations"]:
+            if self.rules.fail_on_inaccessible_relations:
                 raise NotionError(warn_text)
             else:
                 logger.warning(warn_text)
@@ -154,7 +154,7 @@ class NotionPreparator(object):  # noqa: WPS214
             raise NotionError(f"Notion DB column '{key_column}' is not a key column.")
 
     def _vlaidate_merge_only_columns(self) -> None:
-        merge_only_columns = set(self.rules["merge_only_columns"])
+        merge_only_columns = set(self.rules.merge_only_column)
         csv_columns = set(self.csv.columns)
 
         missing_columns = merge_only_columns - csv_columns
@@ -190,15 +190,15 @@ class NotionPreparator(object):  # noqa: WPS214
         csv_columns = set(self.csv.columns)
         db_columns = set(self.db.columns)
 
-        if self.rules["image_column"] and not self.rules["image_column_keep"]:
-            csv_columns -= {self.rules["image_column"]}
+        if self.rules.image_column and not self.rules.image_column_keep:
+            csv_columns -= {self.rules.image_column}
 
-        if self.rules["image_caption_column"]:
-            if not self.rules["image_caption_column_keep"]:
-                csv_columns -= {self.rules["image_caption_column"]}
+        if self.rules.image_caption_column:
+            if not self.rules.image_caption_column_keep:
+                csv_columns -= {self.rules.image_caption_column}
 
-        if self.rules["icon_column"] and not self.rules["icon_column_keep"]:
-            csv_columns -= {self.rules["icon_column"]}
+        if self.rules.icon_column and not self.rules.icon_column_keep:
+            csv_columns -= {self.rules.icon_column}
 
         return csv_columns - db_columns
 

@@ -11,6 +11,7 @@ from csv2notion.notion_convert import NotionRowConverter
 from csv2notion.notion_db import NotionDB, notion_db_from_csv
 from csv2notion.notion_preparator import NotionPreparator
 from csv2notion.notion_uploader import NotionUploadRow
+from csv2notion.utils_static import ConversionRules
 from csv2notion.utils_threading import ThreadRowUploader, process_iter
 
 logger = logging.getLogger(__name__)
@@ -44,29 +45,7 @@ def convert_csv_to_notion_rows(
 ) -> List[NotionUploadRow]:
     notion_db = NotionDB(client, collection_id)
 
-    conversion_rules = {
-        "files_search_path": args.csv_file.parent,
-        "default_icon": args.default_icon,
-        "image_column": args.image_column,
-        "image_column_keep": args.image_column_keep,
-        "image_column_mode": args.image_column_mode,
-        "image_caption_column": args.image_caption_column,
-        "image_caption_column_keep": args.image_caption_column_keep,
-        "icon_column": args.icon_column,
-        "icon_column_keep": args.icon_column_keep,
-        "mandatory_columns": args.mandatory_column,
-        "is_merge": args.merge,
-        "merge_only_columns": args.merge_only_column,
-        "merge_skip_new": args.merge_skip_new,
-        "add_missing_columns": args.add_missing_columns,
-        "add_missing_relations": args.add_missing_relations,
-        "fail_on_relation_duplicates": args.fail_on_relation_duplicates,
-        "fail_on_duplicates": args.fail_on_duplicates,
-        "fail_on_conversion_error": args.fail_on_conversion_error,
-        "fail_on_inaccessible_relations": args.fail_on_inaccessible_relations,
-        "fail_on_missing_columns": args.fail_on_missing_columns,
-        "fail_on_unsupported_columns": args.fail_on_unsupported_columns,
-    }
+    conversion_rules = ConversionRules.from_args(args)
 
     NotionPreparator(notion_db, csv_data, conversion_rules).prepare()
 

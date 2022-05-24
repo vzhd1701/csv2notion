@@ -46,7 +46,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                 "metavar": "URL",
             },
             "--max-threads": {
-                "type": int,
+                "type": lambda x: max(int(x), 1),
                 "default": 5,
                 "help": "upload threads (default: 5)",
                 "metavar": "NUMBER",
@@ -58,7 +58,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--verbose": {
                 "action": "store_true",
-                "default": False,
                 "help": "output debug information",
             },
             "--version": {
@@ -78,10 +77,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     "\n(can also be used with --add-missing-columns flag)"
                 ),
                 "metavar": "TYPES",
+                "type": _parse_column_types,
             },
             "--add-missing-columns": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "if columns are present in CSV but not in Notion DB,"
                     " add them to Notion DB"
@@ -91,7 +90,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         "merge options": {
             "--merge": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "merge CSV with existing Notion DB rows,"
                     " first column will be used as a key"
@@ -105,10 +103,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     "\n(use multiple times for multiple columns)"
                 ),
                 "metavar": "COLUMN",
+                "default": [],
             },
             "--merge-skip-new": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "skip new rows in CSV that are not already in Notion DB"
                     " during merge"
@@ -118,7 +116,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         "relations options": {
             "--add-missing-relations": {
                 "action": "store_true",
-                "default": False,
                 "help": "add missing entries into linked Notion DB",
             },
         },
@@ -132,7 +129,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--image-column-keep": {
                 "action": "store_true",
-                "default": False,
                 "help": "keep image CSV column as a Notion DB column",
             },
             "--image-column-mode": {
@@ -153,7 +149,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--image-caption-column-keep": {
                 "action": "store_true",
-                "default": False,
                 "help": "keep image caption CSV column as a Notion DB column",
             },
         },
@@ -167,7 +162,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--icon-column-keep": {
                 "action": "store_true",
-                "default": False,
                 "help": "keep icon CSV column as a Notion DB column",
             },
             "--default-icon": {
@@ -176,6 +170,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     " that will be used as page icon for every row by default"
                 ),
                 "metavar": "ICON",
+                "type": _parse_default_icon,
             },
         },
         "validation options": {
@@ -186,10 +181,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     " (use multiple times for multiple columns)"
                 ),
                 "metavar": "COLUMN",
+                "default": [],
             },
             "--fail-on-relation-duplicates": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if any linked DBs in relation columns have duplicate entries;"
                     "\notherwise, first entry in alphabetical order"
@@ -198,7 +193,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--fail-on-duplicates": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if Notion DB or CSV has duplicates in key column,"
                     "\nuseful when sanitizing before merge to avoid ambiguous mapping"
@@ -206,7 +200,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--fail-on-duplicate-csv-columns": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if CSV has duplicate columns;"
                     "\notherwise last column will be used"
@@ -214,7 +207,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--fail-on-conversion-error": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if any column type conversion error occurs;"
                     "\notherwise errors will be replaced with empty strings"
@@ -222,7 +214,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--fail-on-inaccessible-relations": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if any relation column points to a Notion DB that"
                     "\nis not accessible to the current user;"
@@ -231,7 +222,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--fail-on-missing-columns": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if columns are present in CSV but not in Notion DB;"
                     "\notherwise those columns will be ignored"
@@ -239,7 +229,6 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
             },
             "--fail-on-unsupported-columns": {
                 "action": "store_true",
-                "default": False,
                 "help": (
                     "fail if DB has columns that are not supported by this tool;"
                     "\notherwise those columns will be ignored"
@@ -252,11 +241,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
 
     _parse_schema(parser, schema)
 
-    parsed_args = parser.parse_args(argv)
-
-    _post_process_args(parsed_args)
-
-    return parsed_args
+    return parser.parse_args(argv)
 
 
 def _parse_schema(  # noqa: WPS210
@@ -273,22 +258,6 @@ def _parse_schema(  # noqa: WPS210
         for arg, arg_params in group_args.items():
             opt_arg = [arg] if isinstance(arg, str) else arg
             group.add_argument(*opt_arg, **arg_params)
-
-
-def _post_process_args(parsed_args: argparse.Namespace) -> None:
-    if parsed_args.mandatory_column is None:
-        parsed_args.mandatory_column = []
-
-    if parsed_args.merge_only_column is None:
-        parsed_args.merge_only_column = []
-
-    parsed_args.max_threads = max(parsed_args.max_threads, 1)
-
-    if parsed_args.column_types:
-        parsed_args.column_types = _parse_column_types(parsed_args.column_types)
-
-    if parsed_args.default_icon:
-        parsed_args.default_icon = _parse_default_icon(parsed_args.default_icon)
 
 
 def _parse_default_icon(default_icon: str) -> FileType:

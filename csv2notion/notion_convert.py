@@ -19,14 +19,14 @@ from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.notion_type_guess import is_email
 from csv2notion.notion_uploader import NotionUploadRow
 from csv2notion.utils_exceptions import NotionError, TypeConversionError
-from csv2notion.utils_static import FileType
+from csv2notion.utils_static import ConversionRules, FileType
 from csv2notion.utils_str import split_str
 
 logger = logging.getLogger(__name__)
 
 
 class NotionRowConverter(object):  # noqa:  WPS214
-    def __init__(self, db: NotionDB, conversion_rules: Dict[str, Any]):
+    def __init__(self, db: NotionDB, conversion_rules: ConversionRules):
         self.db = db
         self.rules = conversion_rules
 
@@ -50,7 +50,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
     def _error(self, error: str) -> None:
         logger.error(f"CSV [{self._current_row}]: {error}")
 
-        if self.rules["fail_on_conversion_error"]:
+        if self.rules.fail_on_conversion_error:
             raise NotionError("Error during conversion.")
 
     def _convert_row(self, row: CSVRowType) -> NotionUploadRow:
@@ -62,7 +62,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
     def _map_properties(self, row: CSVRowType) -> Dict[str, Any]:
         properties = {}
 
-        if self.rules["image_column_mode"] == "block":
+        if self.rules.image_column_mode == "block":
             properties["cover_block"] = self._map_image(row)
             properties["cover_block_caption"] = self._map_image_caption(row)
         else:
@@ -137,52 +137,52 @@ class NotionRowConverter(object):  # noqa:  WPS214
     def _map_icon(self, row: CSVRowType) -> Optional[FileType]:
         icon: Optional[FileType] = None
 
-        if self.rules["icon_column"]:
-            icon = row.get(self.rules["icon_column"], "").strip()
+        if self.rules.icon_column:
+            icon = row.get(self.rules.icon_column, "").strip()
             if icon:
                 icon = map_icon(icon)
                 if isinstance(icon, Path):
                     icon = self._relative_path(icon)
 
-            self._raise_if_mandatory_empty(self.rules["icon_column"], icon)
+            self._raise_if_mandatory_empty(self.rules.icon_column, icon)
 
-            if not self.rules["icon_column_keep"]:
-                row.pop(self.rules["icon_column"], None)
+            if not self.rules.icon_column_keep:
+                row.pop(self.rules.icon_column, None)
 
-        if not icon and self.rules["default_icon"]:
-            icon = self.rules["default_icon"]
+        if not icon and self.rules.default_icon:
+            icon = self.rules.default_icon
 
         return icon
 
     def _map_image(self, row: CSVRowType) -> Optional[FileType]:
         image: Optional[FileType] = None
 
-        if self.rules["image_column"]:
-            image = row.get(self.rules["image_column"], "").strip()
+        if self.rules.image_column:
+            image = row.get(self.rules.image_column, "").strip()
             if image:
                 image = map_url_or_file(image)
                 if isinstance(image, Path):
                     image = self._relative_path(image)
 
-            self._raise_if_mandatory_empty(self.rules["image_column"], image)
+            self._raise_if_mandatory_empty(self.rules.image_column, image)
 
-            if not self.rules["image_column_keep"]:
-                row.pop(self.rules["image_column"], None)
+            if not self.rules.image_column_keep:
+                row.pop(self.rules.image_column, None)
 
         return image
 
     def _map_image_caption(self, row: CSVRowType) -> Optional[str]:
         image_caption = None
 
-        if self.rules["image_caption_column"]:
-            image_caption = row.get(self.rules["image_caption_column"], "").strip()
+        if self.rules.image_caption_column:
+            image_caption = row.get(self.rules.image_caption_column, "").strip()
 
             self._raise_if_mandatory_empty(
-                self.rules["image_caption_column"], image_caption
+                self.rules.image_caption_column, image_caption
             )
 
-            if not self.rules["image_caption_column_keep"]:
-                row.pop(self.rules["image_caption_column"], None)
+            if not self.rules.image_caption_column_keep:
+                row.pop(self.rules.image_caption_column, None)
 
         return image_caption
 
@@ -221,7 +221,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
         return ensured_path
 
     def _relative_path(self, path: Path) -> Optional[Path]:
-        search_path = self.rules["files_search_path"]
+        search_path = self.rules.files_search_path
 
         if not path.is_absolute():
             path = search_path / path
@@ -257,7 +257,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
         try:
             return relation.rows[key]
         except KeyError:
-            if self.rules["add_missing_relations"]:
+            if self.rules.add_missing_relations:
                 return relation.add_row_key(key)
 
             self._error(
@@ -319,7 +319,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
         return resolved_persons
 
     def _raise_if_mandatory_empty(self, col_key: str, col_value: Any) -> None:
-        is_mandatory = col_key in self.rules["mandatory_columns"]
+        is_mandatory = col_key in self.rules.mandatory_column
 
         if is_mandatory and not col_value:
             raise NotionError(f"Mandatory column '{col_key}' is empty")

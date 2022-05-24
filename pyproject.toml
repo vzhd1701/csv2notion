@@ -72,6 +72,7 @@ exclude = [
 # WPS326 implicit line concat
 # Docstings, don't have any
 # WPS226 String constant overuse
+# WPS237 Complex f-strings
 # WPS437 protected attributes (needed for Notion sdk)
 
 # Exceptions [false positives & formatting]
@@ -88,7 +89,7 @@ flake8-quotes = ["+*", "-Q000"]
 flake8-rst-docstrings = ["-*"]
 flake8-docstrings = ["-*"]
 flake8-darglint = ["-*"]
-wemake-python-styleguide = ["+*", "-WPS111", "-WPS226", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS437", "-WPS601"]
+wemake-python-styleguide = ["+*", "-WPS111", "-WPS226", "-WPS237", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS437", "-WPS601"]
 
 [tool.flakehell.exceptions."csv2notion/version.py"]
 # I like it this way
