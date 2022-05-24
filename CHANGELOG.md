@@ -1,3 +1,26 @@
+## [0.2.0](https://github.com/vzhd1701/csv2notion/compare/v0.1.3...v0.2.0) (2022-05-24)
+
+### Features
+
+- add --fail-on-unsupported-columns flag ([846b4fd](https://github.com/vzhd1701/csv2notion/commit/846b4fd2ba7bee6801bfe4da75c99a003f5f662f))
+- add --merge-skip-new flag ([3d7b805](https://github.com/vzhd1701/csv2notion/commit/3d7b805385818a4a157064184f061f65af87a302))
+
+### Bug Fixes
+
+- add more warnings ([2777cfe](https://github.com/vzhd1701/csv2notion/commit/2777cfe17300519ca803c5b7cb35303162a68e5d))
+- add support for created/updated time column types ([6fbb3bc](https://github.com/vzhd1701/csv2notion/commit/6fbb3bcb7a32736ee08b0c64f0d661d68dd75217))
+- add support for file column type ([4cf2b5a](https://github.com/vzhd1701/csv2notion/commit/4cf2b5a86958a22510ffcff37797c4211e2a826b))
+- add support for notion URLs in relations ([0c3a6e6](https://github.com/vzhd1701/csv2notion/commit/0c3a6e608bebd1875bf797ecb1b8809d56f54aa2))
+- add support for person column type ([e897c2d](https://github.com/vzhd1701/csv2notion/commit/e897c2d3189c503e6d33e6d05d038d1eb130c1a9))
+- change --missing-relations-action into --add-missing-relations ([16f284f](https://github.com/vzhd1701/csv2notion/commit/16f284fd7084ddfe5f2bd1acae21bdaff4bea1ae))
+- fail if no columns left after validation ([01e9cd9](https://github.com/vzhd1701/csv2notion/commit/01e9cd9cef6306a0fa3b643afad4988a3d7471e1))
+- get existing row only during merge ([22d2b09](https://github.com/vzhd1701/csv2notion/commit/22d2b094343a394cf0b149e79ac05e1aae078422))
+- make only last timestamp column count ([2aca947](https://github.com/vzhd1701/csv2notion/commit/2aca9477fcff5c29f4082ea9f8ae4d62bb4a02c2))
+- rename --custom-types into --column-types ([de142b7](https://github.com/vzhd1701/csv2notion/commit/de142b797029c529cb43e83af52bea068d1c3c26))
+- rename --fail-on-unsupported-columns into --fail-on-unsettable-columns ([f60e747](https://github.com/vzhd1701/csv2notion/commit/f60e747b449fd09cc7103ce94f6e3bb6d5f0aa35))
+- split --help options into groups ([a051eb4](https://github.com/vzhd1701/csv2notion/commit/a051eb48ce2140c15131aab232bdc32a70b8b6c3))
+- split --missing-columns-action into --add-missing-columns and --fail-on-missing-columns ([804908d](https://github.com/vzhd1701/csv2notion/commit/804908d238fdbc51d04c4af9fcda1e6ff2fb11da))
+
 ### [0.1.3](https://github.com/vzhd1701/csv2notion/compare/v0.1.2...v0.1.3) (2022-05-09)
 
 ### Bug Fixes
