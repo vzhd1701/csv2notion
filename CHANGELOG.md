@@ -1,3 +1,9 @@
+### [0.2.1](https://github.com/vzhd1701/csv2notion/compare/v0.2.0...v0.2.1) (2022-06-04)
+
+### Bug Fixes
+
+- update notion-vzhd1701-fork to avoid network error on file upload ([ebb1b49](https://github.com/vzhd1701/csv2notion/commit/ebb1b49b6be7d8646406b5e21ebec50781f73907))
+
 ## [0.2.0](https://github.com/vzhd1701/csv2notion/compare/v0.1.3...v0.2.0) (2022-05-24)
 
 ### Features
