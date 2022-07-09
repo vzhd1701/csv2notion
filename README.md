@@ -85,6 +85,7 @@ column options:
                                      if none is provided, types will be guessed from CSV values
                                      (can also be used with --add-missing-columns flag)
   --add-missing-columns              if columns are present in CSV but not in Notion DB, add them to Notion DB
+  --randomize-select-colors          randomize colors for added options in select and multi select columns
 
 merge options:
   --merge                            merge CSV with existing Notion DB rows, first column will be used as a key
@@ -156,6 +157,8 @@ If a CSV file has columns absent from Notion DB, they will be ignored by default
 ### Column types
 
 By default, the tool will try to guess column types based on their content. Alternatively, you can provide a comma-separated list of column types with the `--column-types` option when creating a new database or adding new columns with the `--add-missing-columns` flag. Since the first column in Notion DB is always text, the tool will use the list to set types for the rest of the columns.
+
+By default, new options for `select` and `multi_select` columns are added with default (gray) color. If you want the tool to randomize colors for new options, use the `--randomize-select-colors` flag.
 
 Some column types do not support assigning value to them because the database generates their content automatically. Currently these types include `created_by`, `last_edited_by`, `rollup` and `formula`. If you want the program to stop if it finds such columns in the database, use the `--fail-on-unsettable-columns` flag.
 
