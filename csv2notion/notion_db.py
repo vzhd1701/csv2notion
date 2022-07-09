@@ -1,11 +1,11 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
-from notion.client import NotionClient
 from notion.user import User
 from notion.utils import InvalidNotionIdentifier
 
 from csv2notion.csv_data import CSVData
+from csv2notion.notion_db_client import NotionClientExtended
 from csv2notion.notion_db_collection import CollectionExtended
 from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.utils_exceptions import NotionError
@@ -13,7 +13,7 @@ from csv2notion.utils_rand_id import rand_id_list
 
 
 class NotionDB(object):  # noqa: WPS214
-    def __init__(self, client: NotionClient, collection_id: str):
+    def __init__(self, client: NotionClientExtended, collection_id: str):
         self.client = client
         self.collection = CollectionExtended(self.client, collection_id)
 
@@ -112,7 +112,7 @@ class NotionDB(object):  # noqa: WPS214
         return self.add_row(columns={self.key_column: key})
 
 
-def get_collection_id(client: NotionClient, notion_url: str) -> str:
+def get_collection_id(client: NotionClientExtended, notion_url: str) -> str:
     try:
         block = client.get_block(notion_url, force_refresh=True)
     except InvalidNotionIdentifier as e:
@@ -125,7 +125,7 @@ def get_collection_id(client: NotionClient, notion_url: str) -> str:
 
 
 def notion_db_from_csv(
-    client: NotionClient,
+    client: NotionClientExtended,
     page_name: str,
     csv_data: CSVData,
     skip_columns: Optional[List[str]] = None,
@@ -153,6 +153,9 @@ def notion_db_from_csv(
             schema=schema,
         )
     )
+
+    if page.collection is None:
+        raise NotionError("Failed to create collection.")
 
     view = page.views.add_new(view_type="table")
 
@@ -186,8 +189,12 @@ def _schema_from_csv(
     return schema
 
 
-def get_notion_client(token: str) -> NotionClient:
+def get_notion_client(token: str, **options: Dict[str, Any]) -> NotionClientExtended:
     try:
-        return NotionClient(token_v2=token)
+        client = NotionClientExtended(token_v2=token)
     except requests.exceptions.HTTPError as e:
         raise NotionError("Invalid Notion token") from e
+
+    client.options = options
+
+    return client

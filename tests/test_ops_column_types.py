@@ -143,9 +143,11 @@ def test_column_types_multi_select(tmp_path, db_maker):
     )
 
     options = {v["value"] for v in test_db.schema_dict["b"]["options"]}
+    colors = {v["color"] for v in test_db.schema_dict["b"]["options"]}
 
     assert test_db.schema_dict["b"]["type"] == "multi_select"
     assert options == {"b1", "b2", "b3"}
+    assert colors == {"default"}
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
@@ -170,9 +172,11 @@ def test_column_types_select(tmp_path, db_maker):
     )
 
     options = {v["value"] for v in test_db.schema_dict["b"]["options"]}
+    colors = {v["color"] for v in test_db.schema_dict["b"]["options"]}
 
     assert test_db.schema_dict["b"]["type"] == "select"
     assert options == {"b1", "b2"}
+    assert colors == {"default"}
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 2
@@ -181,6 +185,43 @@ def test_column_types_select(tmp_path, db_maker):
     assert test_db.rows[0].columns["b"] == "b1"
     assert test_db.rows[1].columns["a"] == "a2"
     assert test_db.rows[1].columns["b"] == "b2"
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_column_types_multi_select_colored(tmp_path, db_maker, mocker):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text('a,b\na,"b1, b2, b3"')
+
+    test_colors = ["brown", "orange", "yellow"]
+
+    mocker.patch(
+        "random.choice",
+        side_effect=["brown", "orange", "yellow"],
+    )
+
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--column-types",
+        "multi_select",
+        "--randomize-select-colors",
+        "--max-threads=1",
+        str(test_file),
+    )
+
+    options = {v["value"] for v in test_db.schema_dict["b"]["options"]}
+    colors = {v["color"] for v in test_db.schema_dict["b"]["options"]}
+
+    assert test_db.schema_dict["b"]["type"] == "multi_select"
+    assert options == {"b1", "b2", "b3"}
+    assert colors == set(test_colors)
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == ["b1", "b2", "b3"]
 
 
 @pytest.mark.vcr()

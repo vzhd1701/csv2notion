@@ -86,6 +86,13 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     " add them to Notion DB"
                 ),
             },
+            "--randomize-select-colors": {
+                "action": "store_true",
+                "help": (
+                    "randomize colors for added options"
+                    " in select and multi select columns"
+                ),
+            },
         },
         "merge options": {
             "--merge": {

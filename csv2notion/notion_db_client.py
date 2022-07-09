@@ -1,30 +1,46 @@
 from copy import deepcopy
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from notion.client import NotionClient, create_session
 from notion.space import Space
 from notion.store import RecordStore
 from notion.user import User
 
+from csv2notion.notion_db_collection import CollectionExtended
 
-class ClonableNotionClient(NotionClient):
+
+class NotionClientExtended(NotionClient):
     def __init__(
         self,
         *args: Any,
-        old_client: Optional[NotionClient] = None,
+        old_client: Optional["NotionClientExtended"] = None,
+        options: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ):
+        self.options = options or {}
+
         if old_client is None:
             super().__init__(*args, **kwargs)
+            return
 
         self._monitor = None
 
         self.session = create_session()
-        self.session.cookies = old_client.session.cookies.copy()  # type: ignore
+        self.session.cookies = old_client.session.cookies.copy()
 
         self._store = self._clone_store(old_client)
 
         self._clone_user_info(old_client)
+
+        self.options = old_client.options.copy()
+
+    def get_collection(
+        self, collection_id: str, force_refresh: bool = False
+    ) -> Optional[CollectionExtended]:
+        coll = self.get_record_data(
+            "collection", collection_id, force_refresh=force_refresh
+        )
+        return CollectionExtended(self, collection_id) if coll else None
 
     def _clone_store(self, old_client: NotionClient) -> RecordStore:
         new_store = RecordStore(self)

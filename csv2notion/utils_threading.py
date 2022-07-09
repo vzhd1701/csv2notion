@@ -2,15 +2,13 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Iterable, Iterator
 
-from notion.client import NotionClient
-
 from csv2notion.notion_db import NotionDB
-from csv2notion.notion_db_client import ClonableNotionClient
+from csv2notion.notion_db_client import NotionClientExtended
 from csv2notion.notion_uploader import NotionRowUploader
 
 
 class ThreadRowUploader(object):
-    def __init__(self, client: NotionClient, collection_id: str) -> None:
+    def __init__(self, client: NotionClientExtended, collection_id: str) -> None:
         self.thread_data = threading.local()
 
         self.client = client
@@ -20,7 +18,7 @@ class ThreadRowUploader(object):
         try:
             notion_uploader = self.thread_data.uploader
         except AttributeError:
-            client = ClonableNotionClient(old_client=self.client)
+            client = NotionClientExtended(old_client=self.client)
             notion_db = NotionDB(client, self.collection_id)
             notion_uploader = NotionRowUploader(notion_db)
             self.thread_data.uploader = notion_uploader

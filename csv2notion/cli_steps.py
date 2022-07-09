@@ -3,12 +3,12 @@ from argparse import Namespace
 from functools import partial
 from typing import List
 
-from notion.client import NotionClient
 from tqdm import tqdm
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_convert import NotionRowConverter
 from csv2notion.notion_db import NotionDB, notion_db_from_csv
+from csv2notion.notion_db_client import NotionClientExtended
 from csv2notion.notion_preparator import NotionPreparator
 from csv2notion.notion_uploader import NotionUploadRow
 from csv2notion.utils_static import ConversionRules
@@ -17,7 +17,9 @@ from csv2notion.utils_threading import ThreadRowUploader, process_iter
 logger = logging.getLogger(__name__)
 
 
-def new_database(args: Namespace, client: NotionClient, csv_data: CSVData) -> str:
+def new_database(
+    args: Namespace, client: NotionClientExtended, csv_data: CSVData
+) -> str:
     skip_columns = []
     if args.image_column and not args.image_column_keep:
         skip_columns.append(args.image_column)
@@ -41,7 +43,7 @@ def new_database(args: Namespace, client: NotionClient, csv_data: CSVData) -> st
 
 
 def convert_csv_to_notion_rows(
-    csv_data: CSVData, client: NotionClient, collection_id: str, args: Namespace
+    csv_data: CSVData, client: NotionClientExtended, collection_id: str, args: Namespace
 ) -> List[NotionUploadRow]:
     notion_db = NotionDB(client, collection_id)
 
@@ -55,7 +57,7 @@ def convert_csv_to_notion_rows(
 
 def upload_rows(
     notion_rows: List[NotionUploadRow],
-    client: NotionClient,
+    client: NotionClientExtended,
     collection_id: str,
     is_merge: bool,
     max_threads: int,

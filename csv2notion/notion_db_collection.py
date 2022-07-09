@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Optional, cast
+import random
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from notion.collection import Collection
+from notion.collection import Collection, NotionSelect
 
 from csv2notion.notion_row import CollectionRowBlockExtended
 from csv2notion.utils_rand_id import rand_id_unique
@@ -54,3 +55,29 @@ class CollectionExtended(Collection):
     def is_accessible(self) -> bool:
         rec = self._client.get_record_data("collection", self.id, force_refresh=True)
         return rec is not None
+
+    def check_schema_select_options(  # noqa: WPS110, WPS210
+        self, prop: Dict[str, Any], values: Any
+    ) -> Tuple[bool, Dict[str, Any]]:
+        schema_update = False
+
+        prop_options = prop.setdefault("options", [])
+        current_options = [p["value"].lower() for p in prop_options]
+        if not isinstance(values, list):
+            values = [values]  # noqa: WPS110
+
+        for v in values:
+            if v and v.lower() not in current_options:
+                schema_update = True
+
+                if self._client.options.get("is_randomize_select_colors") is True:
+                    color = _get_random_select_color()
+                else:
+                    color = "default"
+
+                prop_options.append(NotionSelect(v, color).to_dict())
+        return schema_update, prop
+
+
+def _get_random_select_color() -> str:
+    return str(random.choice(NotionSelect.valid_colors))  # noqa: S311

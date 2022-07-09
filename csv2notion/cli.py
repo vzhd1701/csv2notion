@@ -28,7 +28,10 @@ def cli(*argv: str) -> None:
     if not csv_data:
         raise CriticalError("CSV file is empty")
 
-    client = get_notion_client(args.token)
+    client = get_notion_client(
+        args.token,
+        is_randomize_select_colors=args.randomize_select_colors,
+    )
 
     if args.url:
         collection_id = get_collection_id(client, args.url)

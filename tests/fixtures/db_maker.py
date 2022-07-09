@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from notion.client import NotionClient
 
+from csv2notion.notion_db_client import NotionClientExtended
 from tests.fixtures.db_maker_class import NotionDBMaker
 
 
@@ -11,7 +12,7 @@ from tests.fixtures.db_maker_class import NotionDBMaker
 def db_maker(vcr_cassette_dir, vcr_cassette_name):
     token = _get_token(vcr_cassette_dir, vcr_cassette_name)
 
-    client = NotionClient(token_v2=token)
+    client = NotionClientExtended(token_v2=token)
 
     test_page_title = "TESTING PAGE"
 
