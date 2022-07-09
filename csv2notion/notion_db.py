@@ -154,7 +154,7 @@ def notion_db_from_csv(
         )
     )
 
-    if page.collection is None:
+    if page.collection is None:  # pragma: no cover
         raise NotionError("Failed to create collection.")
 
     view = page.views.add_new(view_type="table")
