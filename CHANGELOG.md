@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/vzhd1701/csv2notion/compare/v0.2.1...v0.3.0) (2022-07-09)
+
+### Features
+
+- add --randomize-select-colors flag ([27cb75b](https://github.com/vzhd1701/csv2notion/commit/27cb75b25184a64d1c653f6bd25b920ef28ac8de))
+
 ### [0.2.1](https://github.com/vzhd1701/csv2notion/compare/v0.2.0...v0.2.1) (2022-06-04)
 
 ### Bug Fixes
