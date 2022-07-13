@@ -3,7 +3,7 @@
 ### Bug Fixes
 
 - show which columns are duplicate in warning ([414d4a9](https://github.com/vzhd1701/csv2notion/commit/414d4a90372775df99fbaa0ffe86369677bd1135))
-- truncate excess columns if column number is inconsistent ([9ef7a37](https://github.com/vzhd1701/csv2notion/commit/9ef7a3731f700812f5ca03a36a18792ca48cf1f7)), closes [#6](https://github.com/vzhd1701/csv2notion/issues/6)
+- truncate excess columns if column number is inconsistent ([9ef7a37](https://github.com/vzhd1701/csv2notion/commit/9ef7a3731f700812f5ca03a36a18792ca48cf1f7)), closes [#5](https://github.com/vzhd1701/csv2notion/issues/5)
 
 ## [0.3.0](https://github.com/vzhd1701/csv2notion/compare/v0.2.1...v0.3.0) (2022-07-09)
 
