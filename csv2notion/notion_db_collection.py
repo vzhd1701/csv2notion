@@ -56,8 +56,8 @@ class CollectionExtended(Collection):
         rec = self._client.get_record_data("collection", self.id, force_refresh=True)
         return rec is not None
 
-    def check_schema_select_options(  # noqa: WPS110, WPS210
-        self, prop: Dict[str, Any], values: Any
+    def check_schema_select_options(  # noqa: WPS210
+        self, prop: Dict[str, Any], values: Any  # noqa: WPS110
     ) -> Tuple[bool, Dict[str, Any]]:
         schema_update = False
 
