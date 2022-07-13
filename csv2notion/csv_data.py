@@ -37,7 +37,16 @@ def _csv_read_rows(
 
         logger.warning(message)
 
-    return list(reader)
+    rows = list(reader)
+
+    if rows and None in rows[0]:
+        logger.warning(
+            "Inconsistent number of columns detected."
+            " Excess columns will be truncated."
+        )
+        rows = [_drop_dict_columns(row, [None]) for row in rows]
+
+    return rows
 
 
 def _list_duplicates(lst: List[str]) -> List[str]:

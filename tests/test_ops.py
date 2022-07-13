@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import pytest
@@ -171,6 +172,23 @@ def test_existing_page(tmp_path, db_maker):
     assert test_db.rows[0].columns["a"] == "aa"
     assert test_db.rows[0].columns["b"] == "bb"
     assert test_db.rows[0].columns["c"] == "cc"
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_inconsistent_columns_csv(tmp_path, db_maker, caplog):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text("a,b\na,b,c\n")
+
+    with caplog.at_level(logging.WARNING, logger="csv2notion"):
+        test_db = db_maker.from_cli("--token", db_maker.token, str(test_file))
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+
+    assert "Inconsistent number of columns detected" in caplog.text
 
 
 @pytest.mark.vcr()
