@@ -1,4 +1,6 @@
 import csv
+import logging
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, Iterable, Iterator, List, Optional
 
@@ -7,22 +9,39 @@ from csv2notion.utils_exceptions import CriticalError
 
 CSVRowType = Dict[str, str]
 
+logger = logging.getLogger(__name__)
+
 
 def csv_read(file_path: Path, fail_on_duplicate_columns: bool) -> List[CSVRowType]:
     try:
         with open(file_path, "r", encoding="utf-8-sig") as csv_file:
-            reader = csv.DictReader(csv_file, restval="")
-            if not reader.fieldnames:
-                raise CriticalError("CSV file has no columns.")
-            if fail_on_duplicate_columns and _has_duplicates(list(reader.fieldnames)):
-                raise CriticalError("Duplicate columns found in CSV.")
-            return list(reader)
+            return _csv_read_rows(csv_file, fail_on_duplicate_columns)
     except FileNotFoundError as e:
         raise CriticalError(f"File {file_path} not found") from e
 
 
-def _has_duplicates(lst: List[str]) -> bool:
-    return len(lst) != len(set(lst))
+def _csv_read_rows(
+    csv_file: Iterable[str], fail_on_duplicate_columns: bool
+) -> List[CSVRowType]:
+    reader = csv.DictReader(csv_file, restval="")
+
+    if not reader.fieldnames:
+        raise CriticalError("CSV file has no columns.")
+
+    duplicate_columns = _list_duplicates(list(reader.fieldnames))
+    if duplicate_columns:
+        message = f"Duplicate columns found in CSV: {duplicate_columns}."
+
+        if fail_on_duplicate_columns:
+            raise CriticalError(message)
+
+        logger.warning(message)
+
+    return list(reader)
+
+
+def _list_duplicates(lst: List[str]) -> List[str]:
+    return [lst_item for lst_item, count in Counter(lst).items() if count > 1]
 
 
 def _drop_dict_columns(

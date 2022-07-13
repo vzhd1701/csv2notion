@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from csv2notion.cli import cli
@@ -45,22 +47,25 @@ def test_fail_on_duplicate_csv_columns_ok(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
-def test_fail_on_duplicate_csv_columns_ignore(tmp_path, db_maker):
+def test_fail_on_duplicate_csv_columns_ignore(tmp_path, db_maker, caplog):
     test_file = tmp_path / "test.csv"
     test_file.write_text("a,a,b\na1,a2,b")
 
     test_db = db_maker.from_csv_head("a,b")
 
-    cli(
-        "--token",
-        db_maker.token,
-        "--url",
-        test_db.url,
-        str(test_file),
-    )
+    with caplog.at_level(logging.WARNING, logger="csv2notion"):
+        cli(
+            "--token",
+            db_maker.token,
+            "--url",
+            test_db.url,
+            str(test_file),
+        )
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
 
     assert test_db.rows[0].columns["a"] == "a2"
     assert test_db.rows[0].columns["b"] == "b"
+
+    assert "Duplicate columns found in CSV" in str(caplog.text)
