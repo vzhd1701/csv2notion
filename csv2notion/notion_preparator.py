@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Dict, Iterable, List, Set
+from typing import Callable, Dict, Iterable, List, Set, Tuple
 
 from csv2notion.csv_data import CSVData
 from csv2notion.notion_db import NotionDB
@@ -108,18 +108,18 @@ class NotionPreparator(object):  # noqa: WPS214
 
     def _handle_unsupported_columns(self) -> None:
         unsupported_columns = self._get_unsupported_columns()
-        if unsupported_columns:
-            warn_text = (
-                f"Cannot set value to these columns"
-                f" due to unsupported type: {unsupported_columns}"
-            )
 
-            if self.rules.fail_on_unsettable_columns:
-                raise NotionError(warn_text)
-            else:
-                logger.warning(warn_text)
+        for col_key, col_type in unsupported_columns:
+            warn_text = f"'{col_key}' column has unsettable type '{col_type}'"
+            if not self.rules.fail_on_unsettable_columns:
+                warn_text += ", it will be skipped"
 
-            self.csv.drop_columns(*unsupported_columns)
+            logger.warning(warn_text)
+
+            self.csv.drop_columns(col_key)
+
+        if self.rules.fail_on_unsettable_columns and unsupported_columns:
+            raise NotionError("Unsettable columns found")
 
     def _handle_inaccessible_relations(self) -> None:
         inaccessible_relations = [
@@ -185,9 +185,9 @@ class NotionPreparator(object):  # noqa: WPS214
         relations = self.db.relations.items()
         return {k: v for k, v in relations if k in self.csv.columns}
 
-    def _get_unsupported_columns(self) -> List[str]:
+    def _get_unsupported_columns(self) -> List[Tuple[str, str]]:
         return [
-            k
+            (k, self.db.columns[k]["type"])
             for k in self._present_columns()
             if self.db.columns[k]["type"] in UNSETTABLE_TYPES
         ]

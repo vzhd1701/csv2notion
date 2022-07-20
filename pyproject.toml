@@ -71,6 +71,7 @@ max_line_length = 88
 # WPS237 Complex f-strings
 # WPS305 forbids f-strings
 # WPS326 implicit line concat
+# WPS336 explicit string concatenation
 # WPS437 protected attributes (needed for Notion sdk)
 
 # Exceptions [false positives & formatting]
@@ -87,7 +88,7 @@ flake8-quotes = ["+*", "-Q000"]
 flake8-rst-docstrings = ["-*"]
 flake8-docstrings = ["-*"]
 flake8-darglint = ["-*"]
-wemake-python-styleguide = ["+*", "-WPS111", "-WPS201", "-WPS226", "-WPS237", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS437", "-WPS601"]
+wemake-python-styleguide = ["+*", "-WPS111", "-WPS201", "-WPS226", "-WPS237", "-WPS305", "-WPS317", "-WPS323", "-WPS326", "-WPS336", "-WPS437", "-WPS601"]
 
 [tool.flakehell.exceptions."csv2notion/version.py"]
 # I like it this way
