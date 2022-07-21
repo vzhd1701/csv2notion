@@ -1,3 +1,9 @@
+### [0.3.3](https://github.com/vzhd1701/csv2notion/compare/v0.3.2...v0.3.3) (2022-07-21)
+
+### Bug Fixes
+
+- fix emoji icon parsing ([01f613e](https://github.com/vzhd1701/csv2notion/commit/01f613ef308ad49bf72befe88787fa3bad741997))
+
 ### [0.3.2](https://github.com/vzhd1701/csv2notion/compare/v0.3.1...v0.3.2) (2022-07-20)
 
 ### Bug Fixes
