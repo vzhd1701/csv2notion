@@ -17,6 +17,36 @@ def test_default_icon_file_not_found():
     assert "File not found: fake_icon.jpg" in str(e.value)
 
 
+def test_default_icon_double_emoji_fail():
+    test_bad_icon = "🤔" * 2
+
+    with pytest.raises(CriticalError) as e:
+        cli(
+            "--token",
+            "fake",
+            "--default-icon",
+            test_bad_icon,
+            "fake",
+        )
+
+    assert f"File not found: {test_bad_icon}" in str(e.value)
+
+
+def test_default_icon_emoji_with_text_fail():
+    test_bad_icon = "🤔a"
+
+    with pytest.raises(CriticalError) as e:
+        cli(
+            "--token",
+            "fake",
+            "--default-icon",
+            test_bad_icon,
+            "fake",
+        )
+
+    assert f"File not found: {test_bad_icon}" in str(e.value)
+
+
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_default_icon_file(tmp_path, smallest_gif, db_maker):
