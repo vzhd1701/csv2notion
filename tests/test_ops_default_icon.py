@@ -104,6 +104,36 @@ def test_default_icon_emoji(tmp_path, db_maker):
 
 @pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
+def test_default_icon_emoji_variation(tmp_path, db_maker):
+    # https://www.emojiall.com/en/emoji/%EF%B8%8F
+    variation_emoji = bytes.fromhex("e29b94efb88f").decode("utf-8")
+    expected_emoji = "⛔"
+
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b\na,b\n")
+
+    test_db = db_maker.from_csv_head("a,b")
+
+    cli(
+        "--token",
+        db_maker.token,
+        "--url",
+        test_db.url,
+        "--default-icon",
+        variation_emoji,
+        str(test_file),
+    )
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 1
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"] == "b"
+
+    assert test_db.rows[0].icon == expected_emoji
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
 def test_default_icon_column_priority(tmp_path, db_maker):
     test_icon_url_default = "https://via.placeholder.com/100"
     test_icon_url_column = "https://via.placeholder.com/200"
