@@ -1,3 +1,9 @@
+### [0.3.4](https://github.com/vzhd1701/csv2notion/compare/v0.3.3...v0.3.4) (2022-08-01)
+
+### Bug Fixes
+
+- update notion SDK to avoid rate limit errors ([129fed4](https://github.com/vzhd1701/csv2notion/commit/129fed4d508e8768e0a1008ba41c4b01b4bfacf3))
+
 ### [0.3.3](https://github.com/vzhd1701/csv2notion/compare/v0.3.2...v0.3.3) (2022-07-21)
 
 ### Bug Fixes
