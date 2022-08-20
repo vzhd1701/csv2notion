@@ -27,27 +27,29 @@ Due to current limitations of the official Notion SDK this tool is using the uno
 
 ## Installation
 
+### Using portable binary
+
 [**Download the latest binary release**](https://github.com/vzhd1701/csv2notion/releases/latest) for your OS.
 
-### With [Homebrew](https://brew.sh/)
+### With [Homebrew](https://brew.sh/) (Recommended for macOS)
 
 ```bash
 $ brew install vzhd1701/tap/csv2notion
 ```
 
-### With PIP
-
-```bash
-$ pip install csv2notion
-```
-
-**Python 3.7 or later required.**
-
-Or, since **csv2notion** is a standalone tool, it might be more convenient to install it using [**pipx**](https://github.com/pipxproject/pipx):
+### With [PIPX](https://github.com/pypa/pipx) (Recommended for Linux & Windows)
 
 ```shell
 $ pipx install csv2notion
 ```
+
+### With PIP
+
+```bash
+$ pip install --user csv2notion
+```
+
+**Python 3.7 or later required.**
 
 ### From source
 
