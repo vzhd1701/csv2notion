@@ -27,6 +27,7 @@ class NotionPreparator(object):  # noqa: WPS214
             self._handle_missing_columns,
             self._handle_unsupported_columns,
             self._handle_inaccessible_relations,
+            self._handle_wrong_status_values,
         ]
 
         if self.rules.fail_on_relation_duplicates:
@@ -136,6 +137,28 @@ class NotionPreparator(object):  # noqa: WPS214
 
             self.csv.drop_columns(*inaccessible_relations)
 
+    def _handle_wrong_status_values(self) -> None:
+        for s_column in self.csv.columns_of_type("status"):
+            wrong_values = self._get_wrong_status_values(s_column)
+
+            if not wrong_values:
+                continue
+
+            warn_text = (
+                f"Column '{s_column}' has values missing from available"
+                f" status values in DB: {wrong_values}"
+            )
+
+            if self.rules.fail_on_wrong_status_values:
+                raise NotionError(warn_text)
+
+            logger.warning(warn_text)
+            logger.warning("These values will be replaced with default status")
+
+            for row in self.csv.rows:
+                if row[s_column] in wrong_values:
+                    row[s_column] = ""
+
     def _validate_relations_duplicates(self) -> None:
         for relation_key, relation in self._present_relations().items():
             if relation.has_duplicates():
@@ -213,3 +236,11 @@ class NotionPreparator(object):  # noqa: WPS214
         db_keys = set(self.db.rows)
 
         return csv_keys - db_keys
+
+    def _get_wrong_status_values(self, column: str) -> Set[str]:
+        col_values = set(self.csv.col_values(column))
+        db_available_values = {
+            c["value"] for c in self.db.columns[column]["options"]  # type: ignore
+        } | {""}
+
+        return col_values - db_available_values

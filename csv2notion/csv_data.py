@@ -88,8 +88,14 @@ class CSVData(Iterable[CSVRowType]):  # noqa:  WPS214
     def columns(self) -> List[str]:
         return list(self.rows[0].keys()) if self.rows else []
 
+    def columns_of_type(self, col_type: str) -> List[str]:
+        return [col for col in self.content_columns if self.col_type(col) == col_type]
+
     def col_type(self, col_name: str) -> str:
         return self.types[col_name]
+
+    def col_values(self, col_name: str) -> List[str]:
+        return [row[col_name] for row in self.rows]
 
     def drop_columns(self, *columns: str) -> None:
         self.rows = [_drop_dict_columns(row, columns) for row in self.rows]
@@ -101,7 +107,7 @@ class CSVData(Iterable[CSVRowType]):  # noqa:  WPS214
     def _column_types(self, column_types: Optional[List[str]] = None) -> Dict[str, str]:
         if not column_types:
             return {
-                key: guess_type_by_values(self._col_values(key))
+                key: guess_type_by_values(self.col_values(key))
                 for key in self.columns[1:]
             }
 
@@ -111,6 +117,3 @@ class CSVData(Iterable[CSVRowType]):  # noqa:  WPS214
             )
 
         return {key: column_types[i] for i, key in enumerate(self.content_columns)}
-
-    def _col_values(self, col_name: str) -> List[str]:
-        return [row[col_name] for row in self.rows]

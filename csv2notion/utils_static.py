@@ -8,6 +8,7 @@ ALLOWED_TYPES = frozenset(
         "checkbox",
         "date",
         "multi_select",
+        "status",
         "select",
         "number",
         "email",
@@ -58,6 +59,7 @@ class ConversionRules(object):
     fail_on_inaccessible_relations: bool
     fail_on_missing_columns: bool
     fail_on_unsettable_columns: bool
+    fail_on_wrong_status_values: bool
 
     @property
     def files_search_path(self) -> Path:

@@ -150,9 +150,17 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
 
         self.set(path, new_value)
 
+    def _convert_notion_to_python(self, val: Any, prop: Dict[str, Any]) -> Any:
+        if prop["type"] == "status":
+            return val[0][0] if val else None
+
+        return super()._convert_notion_to_python(val, prop)
+
     def _convert_python_to_notion(
-        self, raw_value: Any, prop: Dict[str, str], identifier: str = "<unknown>"
+        self, raw_value: Any, prop: Dict[str, Any], identifier: str = "<unknown>"
     ) -> Any:
+        result_value = None
+
         if prop["type"] == "file" and isinstance(raw_value, dict):
             filelist = []
             for filename, url in raw_value.items():
@@ -160,6 +168,24 @@ class CollectionRowBlockExtended(CollectionRowBlock):  # noqa: WPS214
                 filelist += [[filename, [["a", url]]], [","]]
             result_value = filelist[:-1]
 
+        if prop["type"] == "status":
+            if not raw_value:
+                result_value = [[""]]
+            elif isinstance(raw_value, str):
+                valid_options = [p["value"].lower() for p in prop["options"]]
+
+                if raw_value.lower() not in valid_options:
+                    raise ValueError(
+                        f"Value '{raw_value}' not acceptable for property"
+                        f" '{identifier}' (valid options: {valid_options})"
+                    )
+                result_value = [[raw_value]]
+            else:
+                raise ValueError(
+                    f"Wrong value type for 'status' type column '{identifier}'"
+                )
+
+        if result_value is not None:
             return ["properties", prop["id"]], result_value
 
         return super()._convert_python_to_notion(raw_value, prop, identifier)

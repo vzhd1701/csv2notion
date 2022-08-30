@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from notion.collection import Collection, NotionSelect
 
 from csv2notion.notion_row import CollectionRowBlockExtended
+from csv2notion.utils_db import make_status_column
 from csv2notion.utils_rand_id import rand_id_unique
 
 
@@ -46,6 +47,10 @@ class CollectionExtended(Collection):
         schema_raw = self.get("schema")
         new_id = rand_id_unique(4, schema_raw)
         schema_raw[new_id] = {"name": column_name, "type": column_type}
+
+        if column_type == "status":
+            schema_raw[new_id].update(make_status_column())
+
         self.set("schema", schema_raw)
 
     def has_duplicates(self) -> bool:

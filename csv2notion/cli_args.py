@@ -243,6 +243,14 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
                     " rollup or formula)"
                 ),
             },
+            "--fail-on-wrong-status-values": {
+                "action": "store_true",
+                "help": (
+                    "fail if values for 'status' columns don't have"
+                    " matching option in DB;"
+                    "\notherwise those values will be replaced with default status"
+                ),
+            },
         },
     }
 

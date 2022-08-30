@@ -8,6 +8,7 @@ from csv2notion.csv_data import CSVData
 from csv2notion.notion_db_client import NotionClientExtended
 from csv2notion.notion_db_collection import CollectionExtended
 from csv2notion.notion_row import CollectionRowBlockExtended
+from csv2notion.utils_db import make_status_column
 from csv2notion.utils_exceptions import NotionError
 from csv2notion.utils_rand_id import rand_id_list
 
@@ -185,6 +186,9 @@ def _schema_from_csv(
             "name": col_key,
             "type": csv_data.col_type(col_key),
         }
+
+        if schema[col_id]["type"] == "status":
+            schema[col_id].update(make_status_column())
 
     return schema
 
