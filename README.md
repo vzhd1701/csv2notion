@@ -132,6 +132,8 @@ validation options:
   --fail-on-unsettable-columns       fail if DB has columns that don't support assigning value to them;
                                      otherwise those columns will be ignored
                                      (columns with type created_by, last_edited_by, rollup or formula)
+  --fail-on-wrong-status-values      fail if values for 'status' columns don't have matching option in DB;
+                                     otherwise those values will be replaced with default status
 ```
 
 ### Input
@@ -178,6 +180,7 @@ The table below describes available codes for `--column-types` and what values a
 | Number                  | `number`                | numerical        | ❌                                     |
 | Select                  | `select`                | string           | ❌                                     |
 | Multi-select            | `multi_select`          | string           | ✔️                                     |
+| Status                  | `status`                | string           | ❌                                     |
 | Date                    | `date`                  | any date format  | ❌                                     |
 | Person                  | `person`                | username, email  | ✔️                                     |
 | Files & media           | `file`                  | file name, URL   | ✔️                                     |
