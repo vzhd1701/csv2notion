@@ -1,3 +1,9 @@
+### [0.3.5](https://github.com/vzhd1701/csv2notion/compare/v0.3.4...v0.3.5) (2022-08-30)
+
+### Features
+
+- add support for status columns ([4477843](https://github.com/vzhd1701/csv2notion/commit/447784318a770acf8eba48d3b7df46687b18b988))
+
 ### [0.3.4](https://github.com/vzhd1701/csv2notion/compare/v0.3.3...v0.3.4) (2022-08-01)
 
 ### Bug Fixes
