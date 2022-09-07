@@ -9,6 +9,8 @@ An alternative way to import `*.csv` files to [Notion.so](https://notion.so).
 
 Due to current limitations of the official Notion SDK this tool is using the unofficial SDK by **Jamie Alexandre** [notion-py](https://github.com/jamalex/notion-py).
 
+Original idea belongs to [Vigneswaran Rajkumar](https://vigneswaranrajkumar.com/).
+
 ### Advantages over native import
 
 - Actually merge CSV with existing database rows (not just add new ones), first column will be used as a key
