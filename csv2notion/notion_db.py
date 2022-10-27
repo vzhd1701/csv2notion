@@ -119,7 +119,7 @@ def get_collection_id(client: NotionClientExtended, notion_url: str) -> str:
     except InvalidNotionIdentifier as e:
         raise NotionError("Invalid URL.") from e
 
-    if block.type != "collection_view_page":
+    if block.type not in ["collection_view_page", "collection_view"]:
         raise NotionError("Provided URL links does not point to a Notion database.")
 
     return str(block.collection.id)
