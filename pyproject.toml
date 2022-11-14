@@ -54,7 +54,6 @@ pre-commit = "^2.18.1"
 wemake-python-styleguide = "^0.16.1"
 flakehell = "^0.9.0"
 flake8 = "3.9.0"
-safety = "^1.10.3"
 mypy = "^0.950"
 
 [tool.flakehell]
