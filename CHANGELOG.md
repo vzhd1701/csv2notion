@@ -1,3 +1,11 @@
+### [0.3.6](https://github.com/vzhd1701/csv2notion/compare/v0.3.5...v0.3.6) (2022-11-14)
+
+### Bug Fixes
+
+- add support for date ranges ([ee3ebbd](https://github.com/vzhd1701/csv2notion/commit/ee3ebbd9638f9734e6f5644eb60eeabaf5be36ea))
+- add support for inline databases ([6eded8b](https://github.com/vzhd1701/csv2notion/commit/6eded8b332f37d4b99d1274f2261a9078cdd09de)), closes [#12](https://github.com/vzhd1701/csv2notion/issues/12)
+- show error if no edit permissions ([348e060](https://github.com/vzhd1701/csv2notion/commit/348e060007acbe083fb158e0d5f766a1651c58d0))
+
 ### [0.3.5](https://github.com/vzhd1701/csv2notion/compare/v0.3.4...v0.3.5) (2022-08-30)
 
 ### Features
