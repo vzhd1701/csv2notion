@@ -90,7 +90,30 @@ def test_bad_url_type(tmp_path, db_maker):
             str(test_file),
         )
 
-    assert "Provided URL links does not point to a Notion database" in str(e.value)
+    assert "Provided URL does not point to a Notion database" in str(e.value)
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_read_only_url(tmp_path, db_maker):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b,c\na,b,c\n")
+
+    read_only_url = (
+        "https://www.notion.so/vzhd1701/70ffd895eb1947b18bda9dacf535f67f?"
+        "v=c081db7615274caa9d90e6e8609fcda8"
+    )
+
+    with pytest.raises(NotionError) as e:
+        cli(
+            "--token",
+            db_maker.token,
+            "--url",
+            read_only_url,
+            str(test_file),
+        )
+
+    assert "You must have editing permissions for Notion database" in str(e.value)
 
 
 @pytest.mark.vcr()
