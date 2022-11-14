@@ -183,7 +183,7 @@ The table below describes available codes for `--column-types` and what values a
 | Select                  | `select`                | string           | ❌                                     |
 | Multi-select            | `multi_select`          | string           | ✔️                                     |
 | Status                  | `status`                | string           | ❌                                     |
-| Date                    | `date`                  | any date format  | ❌                                     |
+| Date                    | `date`                  | any date format  | ✔️ (range)                             |
 | Person                  | `person`                | username, email  | ✔️                                     |
 | Files & media           | `file`                  | file name, URL   | ✔️                                     |
 | Checkbox                | `checkbox`              | `true`, `false`  | ❌                                     |
