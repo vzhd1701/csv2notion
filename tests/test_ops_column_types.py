@@ -73,7 +73,39 @@ def test_column_types_checkbox(tmp_path, db_maker):
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_column_types_date(tmp_path, db_maker):
     test_file = tmp_path / f"{db_maker.page_name}.csv"
-    test_file.write_text("a,b\na,2001-12-01\nb,bad")
+    test_file.write_text("a,b\na,2001-12-01\nb,bad\nc")
+
+    test_db = db_maker.from_cli(
+        "--token",
+        db_maker.token,
+        "--column-types",
+        "date",
+        "--max-threads=1",
+        str(test_file),
+    )
+
+    assert test_db.schema_dict["b"]["type"] == "date"
+
+    assert test_db.header == {"a", "b"}
+    assert len(test_db.rows) == 3
+
+    expected_time = datetime.datetime(2001, 12, 1)
+
+    assert test_db.rows[0].columns["a"] == "a"
+    assert test_db.rows[0].columns["b"].start == expected_time
+    assert test_db.rows[1].columns["a"] == "b"
+    assert test_db.rows[1].columns["b"] is None
+    assert test_db.rows[2].columns["a"] == "c"
+    assert test_db.rows[2].columns["b"] is None
+
+
+@pytest.mark.vcr()
+@pytest.mark.usefixtures("vcr_uuid4")
+def test_column_types_date_split(tmp_path, db_maker):
+    test_file = tmp_path / f"{db_maker.page_name}.csv"
+    test_file.write_text(
+        'a,b\na,"2001-12-01,2001-12-05"\nb,"2001-12-01,2001-12-05,2001-12-10"'
+    )
 
     test_db = db_maker.from_cli(
         "--token",
@@ -89,10 +121,12 @@ def test_column_types_date(tmp_path, db_maker):
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 2
 
-    expected_time = datetime.datetime(2001, 12, 1)
+    expected_time_start = datetime.datetime(2001, 12, 1)
+    expected_time_end = datetime.datetime(2001, 12, 5)
 
     assert test_db.rows[0].columns["a"] == "a"
-    assert test_db.rows[0].columns["b"].start == expected_time
+    assert test_db.rows[0].columns["b"].start == expected_time_start
+    assert test_db.rows[0].columns["b"].end == expected_time_end
     assert test_db.rows[1].columns["a"] == "b"
     assert test_db.rows[1].columns["b"] is None
 

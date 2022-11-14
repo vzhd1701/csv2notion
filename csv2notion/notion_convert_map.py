@@ -5,10 +5,12 @@ from typing import Optional, Union
 from dateutil.parser import ParserError
 from dateutil.parser import parse as date_parse
 from emoji import distinct_emoji_list, emoji_count, replace_emoji  # type: ignore
+from notion.collection import NotionDate
 
 from csv2notion.notion_type_guess import is_url
 from csv2notion.utils_exceptions import TypeConversionError
 from csv2notion.utils_static import FileType
+from csv2notion.utils_str import split_str
 
 
 def map_checkbox(s: str) -> bool:
@@ -20,6 +22,21 @@ def map_date(s: str) -> datetime:
         return date_parse(s)
     except ParserError as e:
         raise TypeConversionError(e) from e
+
+
+def map_notion_date(s: str) -> NotionDate:
+    dates = split_str(s)
+
+    if not dates:
+        raise TypeConversionError("Date field is empty")
+
+    if len(dates) > 2:
+        raise TypeConversionError("Date field doesn't support more than 2 values")
+
+    if len(dates) == 2:
+        return NotionDate(start=map_date(dates[0]), end=map_date(dates[1]))
+
+    return NotionDate(start=map_date(dates[0]))
 
 
 def map_number(s: str) -> Union[int, float]:

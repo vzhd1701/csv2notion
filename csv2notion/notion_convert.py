@@ -11,6 +11,7 @@ from csv2notion.notion_convert_map import (
     map_checkbox,
     map_date,
     map_icon,
+    map_notion_date,
     map_number,
     map_url_or_file,
 )
@@ -93,7 +94,7 @@ class NotionRowConverter(object):  # noqa:  WPS214
         conversion_map: Dict[str, Callable[[str], Any]] = {
             "relation": partial(self._map_relation, col_key),
             "checkbox": map_checkbox,
-            "date": map_date,
+            "date": map_notion_date,
             "created_time": map_date,
             "last_edited_time": map_date,
             "multi_select": split_str,
