@@ -119,10 +119,13 @@ def get_collection_id(client: NotionClientExtended, notion_url: str) -> str:
     except InvalidNotionIdentifier as e:
         raise NotionError("Invalid URL.") from e
 
+    if not block:
+        raise NotionError(f"Cannot access {notion_url}.")
+
     if block.type not in ["collection_view_page", "collection_view"]:
         raise NotionError("Provided URL does not point to a Notion database.")
 
-    if block.collection.role not in {"editor", "content_only_editor"}:
+    if block.collection.role not in {"editor", "content_only_editor", "read_and_write"}:
         raise NotionError("You must have editing permissions for Notion database.")
 
     return str(block.collection.id)

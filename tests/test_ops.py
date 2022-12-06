@@ -73,6 +73,27 @@ def test_bad_url(tmp_path, db_maker):
 
 
 @pytest.mark.vcr()
+def test_inaccessible_url(tmp_path, db_maker):
+    test_file = tmp_path / "test.csv"
+    test_file.write_text("a,b,c\na,b,c\n")
+    inaccessible_url = (
+        "https://www.notion.so/someuser/8e35d9a007b14dd1ae655df9ff6839f3"
+        "?v=6f0a1b89496f45209e99ececccd25b7a"
+    )
+
+    with pytest.raises(NotionError) as e:
+        cli(
+            "--token",
+            db_maker.token,
+            "--url",
+            inaccessible_url,
+            str(test_file),
+        )
+
+    assert "Cannot access" in str(e.value)
+
+
+@pytest.mark.vcr()
 @pytest.mark.usefixtures("vcr_uuid4")
 def test_bad_url_type(tmp_path, db_maker):
     test_file = tmp_path / "test.csv"
