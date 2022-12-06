@@ -1,3 +1,10 @@
+### [0.3.7](https://github.com/vzhd1701/csv2notion/compare/v0.3.6...v0.3.7) (2022-12-06)
+
+### Bug Fixes
+
+- improve URL permission check ([c74b759](https://github.com/vzhd1701/csv2notion/commit/c74b759b895100bd6c62362eee22895ddf6b1cdc))
+- update notion SDK ([94d5d60](https://github.com/vzhd1701/csv2notion/commit/94d5d60782b5ea6b939a4b2c79d0353448595c3f))
+
 ### [0.3.6](https://github.com/vzhd1701/csv2notion/compare/v0.3.5...v0.3.6) (2022-11-14)
 
 ### Bug Fixes
