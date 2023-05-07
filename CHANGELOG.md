@@ -1,3 +1,9 @@
+### [0.3.8](https://github.com/vzhd1701/csv2notion/compare/v0.3.7...v0.3.8) (2023-05-07)
+
+### Bug Fixes
+
+- update Notion SDK to avoid 403 error ([da15829](https://github.com/vzhd1701/csv2notion/commit/da158292c4bb01668615a2fb309966d76a6df690))
+
 ### [0.3.7](https://github.com/vzhd1701/csv2notion/compare/v0.3.6...v0.3.7) (2022-12-06)
 
 ### Bug Fixes
