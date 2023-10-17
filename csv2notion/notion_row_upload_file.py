@@ -64,9 +64,14 @@ def _upload_file(block: Block, file_path: Path) -> str:
 
 
 def get_file_id(image_url: str) -> Optional[str]:
-    match = re.search("secure.notion-static.com/([^/]+)", image_url)
-    if match:
-        return match[1]
+    # aws_host/space_id/file_id/filename
+    aws_re = r"^https://(.*?\.amazonaws\.com)/([a-f0-9\-]+)/([a-f0-9\-]+)/(.*?)$"
+
+    aws_match = re.search(aws_re, image_url)
+
+    if aws_match:
+        return aws_match.group(3)
+
     return None
 
 

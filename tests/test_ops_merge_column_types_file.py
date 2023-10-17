@@ -3,6 +3,7 @@ import re
 import pytest
 
 from csv2notion.cli import cli
+from csv2notion.notion_row_upload_file import get_file_id
 
 
 @pytest.mark.vcr()
@@ -25,7 +26,7 @@ def test_merge_column_types_file_with_content_no_reupload(
     )
 
     pre_file_url = test_db.rows[0].columns["b"][0]
-    pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
+    pre_file_id = get_file_id(pre_file_url)
 
     cli(
         "--token",
@@ -39,7 +40,7 @@ def test_merge_column_types_file_with_content_no_reupload(
     )
 
     post_file_url = test_db.rows[0].columns["b"][0]
-    post_file_id = re.search("secure.notion-static.com/([^/]+)", post_file_url)[1]
+    post_file_id = get_file_id(post_file_url)
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
@@ -72,7 +73,7 @@ def test_merge_column_types_file_with_content_reupload(
     )
 
     pre_file_url = test_db.rows[0].columns["b"][0]
-    pre_file_id = re.search("secure.notion-static.com/([^/]+)", pre_file_url)[1]
+    pre_file_id = get_file_id(pre_file_url)
 
     test_file.write_text(f"a,b\na,{test_image2.name}")
 
@@ -88,7 +89,7 @@ def test_merge_column_types_file_with_content_reupload(
     )
 
     post_file_url = test_db.rows[0].columns["b"][0]
-    post_file_id = re.search("secure.notion-static.com/([^/]+)", post_file_url)[1]
+    post_file_id = get_file_id(post_file_url)
 
     assert test_db.header == {"a", "b"}
     assert len(test_db.rows) == 1
