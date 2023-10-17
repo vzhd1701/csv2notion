@@ -1,3 +1,9 @@
+### [0.3.9](https://github.com/vzhd1701/csv2notion/compare/v0.3.8...v0.3.9) (2023-10-17)
+
+### Bug Fixes
+
+- fix upload result URL parser ([5734913](https://github.com/vzhd1701/csv2notion/commit/573491345f6b6342a5ed6737ac997fd144fb3e00)), closes [#31](https://github.com/vzhd1701/csv2notion/issues/31) [#32](https://github.com/vzhd1701/csv2notion/issues/32) [#33](https://github.com/vzhd1701/csv2notion/issues/33)
+
 ### [0.3.8](https://github.com/vzhd1701/csv2notion/compare/v0.3.7...v0.3.8) (2023-05-07)
 
 ### Bug Fixes
